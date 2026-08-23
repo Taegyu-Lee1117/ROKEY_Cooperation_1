@@ -1,0 +1,25 @@
+# ROS 2 / colcon generated files
+build/
+install/
+log/
+
+# Python generated files
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.venv/
+venv/
+
+# Local database and environment secrets
+data/
+*.db
+*.sqlite
+*.sqlite3
+.env
+
+# Editor and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
