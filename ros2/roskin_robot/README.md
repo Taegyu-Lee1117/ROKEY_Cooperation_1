@@ -13,7 +13,12 @@
 ```bash
 source /opt/ros/jazzy/setup.bash
 mkdir -p ~/ros2_ws/src
-cp -r roskin_robot_ros2 ~/ros2_ws/src/roskin_robot
+git clone https://github.com/jooeun6976-rgb/ROKEY-Team-Project.git \
+  ~/ROKEY-Team-Project
+cd ~/ROKEY-Team-Project
+git switch feature/ros2
+cp -r ~/ROKEY-Team-Project/ros2/roskin_robot \
+  ~/ros2_ws/src/roskin_robot
 cd ~/ros2_ws
 rosdep install -r --from-paths src --ignore-src -y
 colcon build --symlink-install --packages-select roskin_robot
