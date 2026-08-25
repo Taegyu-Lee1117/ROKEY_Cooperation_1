@@ -1,9 +1,11 @@
 from pathlib import Path
+from collections import defaultdict
 from typing import Annotated
 
 import psycopg
-from fastapi import Depends, FastAPI, HTTPException, Query, status
+from fastapi import Depends, FastAPI, HTTPException, Query, WebSocket, WebSocketDisconnect, status
 from fastapi.responses import FileResponse
+from pydantic import BaseModel, Field
 
 from .database import get_connection
 from .models import (
@@ -11,18 +13,67 @@ from .models import (
     ErrorLog,
     ErrorStats,
     Flavor,
-    FlavorAvailability,
+    FlavorUpdate,
+    FlavorSelection,
     Order,
     OrderCreate,
     OrderStats,
+    OrderStatus,
     OrderStatusUpdate,
 )
 
 app = FastAPI(title="Robot Ice Cream API", version="1.0.0")
 Db = Annotated[psycopg.Connection, Depends(get_connection)]
-KIOSK_HTML = Path(__file__).resolve().parents[2] / "ui_preview" / "index.html"
+KIOSK_HTML = Path(__file__).resolve().parents[2] / "ui_preview" / "roskin_robbins_v5.html"
 ADMIN_HTML = Path(__file__).resolve().parents[2] / "ui_preview" / "admin.html"
 DATABASE_HTML = Path(__file__).resolve().parents[2] / "ui_preview" / "database.html"
+
+
+
+class RobotFeedback(BaseModel):
+    status: OrderStatus = OrderStatus.PROCESSING
+    step: str
+    progress: int = Field(ge=0, le=100)
+    message: str = ""
+    eta_seconds: int | None = Field(default=None, ge=0)
+
+
+order_sockets: dict[int, set[WebSocket]] = defaultdict(set)
+
+
+async def broadcast_order_feedback(order_id: int, payload: dict):
+    disconnected = []
+    for websocket in order_sockets[order_id]:
+        try:
+            await websocket.send_json(payload)
+        except Exception:
+            disconnected.append(websocket)
+    for websocket in disconnected:
+        order_sockets[order_id].discard(websocket)
+
+
+@app.websocket("/ws/orders/{order_id}")
+async def order_feedback_socket(websocket: WebSocket, order_id: int):
+    await websocket.accept()
+    order_sockets[order_id].add(websocket)
+    try:
+        while True:
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        order_sockets[order_id].discard(websocket)
+
+
+@app.post("/robot/orders/{order_id}/feedback")
+async def receive_robot_feedback(order_id: int, body: RobotFeedback, db: Db):
+    row = db.execute("SELECT status FROM order_history WHERE id = %s", (order_id,)).fetchone()
+    if row is None:
+        raise HTTPException(status_code=404, detail="존재하지 않는 주문입니다.")
+    should_save_status = (row["status"] == "PENDING" and body.status == OrderStatus.PROCESSING) or (row["status"] in ("PENDING", "PROCESSING") and body.status in (OrderStatus.COMPLETED, OrderStatus.FAILED))
+    if should_save_status:
+        db.execute("UPDATE order_history SET status = %s WHERE id = %s", (body.status.value, order_id))
+    payload = {"order_id": order_id, **body.model_dump(mode="json")}
+    await broadcast_order_feedback(order_id, payload)
+    return payload
 
 
 @app.get("/", include_in_schema=False)
@@ -49,20 +100,48 @@ def health(db: Db) -> dict[str, str]:
 
 @app.get("/flavors", response_model=list[Flavor])
 def list_flavors(db: Db, available_only: bool = False):
-    query = "SELECT id, name, is_available FROM icecream_flavor"
+    query = "SELECT id, name, name_en, description, description_en, is_available FROM icecream_flavor"
     if available_only:
         query += " WHERE is_available = TRUE"
     query += " ORDER BY id"
     return db.execute(query).fetchall()
 
 
+@app.put("/flavors/selection", response_model=list[Flavor])
+def update_flavor_selection(body: FlavorSelection, db: Db):
+    selected_ids = list(dict.fromkeys(body.flavor_ids))
+    if len(selected_ids) != 3:
+        raise HTTPException(status_code=422, detail="서로 다른 맛을 정확히 3개 선택해야 합니다.")
+    existing = db.execute(
+        "SELECT id FROM icecream_flavor WHERE id = ANY(%s)", (selected_ids,)
+    ).fetchall()
+    if len(existing) != 3:
+        raise HTTPException(status_code=404, detail="존재하지 않는 맛이 포함되어 있습니다.")
+    db.execute(
+        "UPDATE icecream_flavor SET is_available = (id = ANY(%s))", (selected_ids,)
+    )
+    return db.execute(
+        """SELECT id, name, name_en, description, description_en, is_available
+           FROM icecream_flavor WHERE is_available = TRUE ORDER BY id"""
+    ).fetchall()
+
+
 @app.patch("/flavors/{flavor_id}", response_model=Flavor)
-def update_flavor(flavor_id: int, body: FlavorAvailability, db: Db):
-    row = db.execute(
-        """UPDATE icecream_flavor SET is_available = %s WHERE id = %s
-           RETURNING id, name, is_available""",
-        (body.is_available, flavor_id),
-    ).fetchone()
+def update_flavor(flavor_id: int, body: FlavorUpdate, db: Db):
+    try:
+        row = db.execute(
+            """UPDATE icecream_flavor
+               SET name = COALESCE(%s, name),
+                   name_en = COALESCE(%s, name_en),
+                   description = COALESCE(%s, description),
+                   description_en = COALESCE(%s, description_en),
+                   is_available = COALESCE(%s, is_available)
+               WHERE id = %s
+               RETURNING id, name, name_en, description, description_en, is_available""",
+            (body.name, body.name_en, body.description, body.description_en, body.is_available, flavor_id),
+        ).fetchone()
+    except psycopg.errors.UniqueViolation:
+        raise HTTPException(status_code=409, detail="이미 사용 중인 맛 이름입니다.") from None
     if row is None:
         raise HTTPException(status_code=404, detail="존재하지 않는 맛입니다.")
     return row

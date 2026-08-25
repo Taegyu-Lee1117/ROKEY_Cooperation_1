@@ -35,11 +35,22 @@ class Flavor(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
     name: str
+    name_en: str
+    description: str
+    description_en: str
     is_available: bool
 
 
-class FlavorAvailability(BaseModel):
-    is_available: bool
+class FlavorUpdate(BaseModel):
+    name: str | None = Field(default=None, min_length=1, max_length=50)
+    name_en: str | None = Field(default=None, max_length=50)
+    description: str | None = Field(default=None, max_length=120)
+    description_en: str | None = Field(default=None, max_length=120)
+    is_available: bool | None = None
+
+
+class FlavorSelection(BaseModel):
+    flavor_ids: list[int] = Field(min_length=3, max_length=3)
 
 
 class OrderCreate(BaseModel):
