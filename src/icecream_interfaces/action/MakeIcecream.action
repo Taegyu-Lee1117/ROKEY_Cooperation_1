@@ -1,0 +1,10 @@
+int32 order_id
+int32 flavor_id
+string flavor_name
+---
+bool success
+string process_step
+string error_code
+string message
+---
+string current_step
