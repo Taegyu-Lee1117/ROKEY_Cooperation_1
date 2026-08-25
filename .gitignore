@@ -23,3 +23,6 @@ data/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Local build script
+/build.sh
