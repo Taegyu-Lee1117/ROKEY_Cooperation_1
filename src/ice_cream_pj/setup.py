@@ -20,6 +20,7 @@ setup(
     entry_points={
         "console_scripts": [
             "first = ice_cream_pj.first:main",
+            "second = ice_cream_pj.second:main",
             "order_bridge = ice_cream_pj.order_bridge:main",
         ],
     },

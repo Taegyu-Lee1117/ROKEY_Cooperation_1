@@ -57,11 +57,11 @@ FastAPI와 PostgreSQL을 사용하여 주문, 재고 및 관리자 기능을 처
 
 자세한 내용은 [backend/README.md](backend/README.md)를 참고하세요.
 
-### `ros2/roskin_robot`
+### `src/ice_cream_pj`
 
 두산로보틱스 로봇팔의 종이컵 및 스쿠핑 동작 코드를 관리합니다.
 
-실행 방법과 모션 설명은 [ros2/roskin_robot/README.md](ros2/roskin_robot/README.md)를 참고하세요.
+실행 방법과 모션 설명은 [src/ice_cream_pj/README.md](src/ice_cream_pj/README.md)를 참고하세요.
 
 ### `src/ice_cream_pj`
 
