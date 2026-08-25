@@ -9,7 +9,9 @@
     html { overflow-y: scroll; }
     * { box-sizing: border-box; }
     body { display: flex; flex-direction: column; margin: 0; min-height: 100vh; overflow-x: hidden; background: #fff7f2; color: #352b2b; }
-    header { display: flex; min-height: 15vh; flex-direction: column; align-items: center; justify-content: center; padding: 24px; text-align: center; background: white; color: #342664; border-bottom: 8px solid #ff5d9e; }
+    header { position: relative; display: flex; min-height: 15vh; flex-direction: column; align-items: center; justify-content: center; padding: 24px; text-align: center; background: white; color: #342664; border-bottom: 8px solid #ff5d9e; }
+    .admin-link { position: absolute; top: 24px; right: 32px; display: inline-flex; width: 150px; height: 48px; align-items: center; justify-content: center; padding: 0; border: 2px solid #342664; border-radius: 14px; color: #342664; background: white; font: 700 17px Arial, sans-serif; line-height: 1; text-decoration: none; }
+    .admin-link:hover { color: white; background: #342664; }
     header h1 { margin: 0 0 10px; font-size: clamp(42px, 4.2vw, 72px); }
     .brand-ros { color: #ff4f9a; }
     .brand-robbins { color: #342664; }
@@ -35,11 +37,12 @@
     .progress-bar { width: 0; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #ff8fab, #ff4f87); transition: width 1s linear; }
     .restart { width: min(600px, 100%); min-height: 92px; margin-top: 34px; color: white; background: #ff5d8f; }
     @keyframes spin { to { transform: rotate(360deg); } }
-    @media (max-width: 700px) { header { min-height: 13vh; } main { width: 90vw; justify-content: flex-start; } .menu { grid-template-columns: 1fr; } button { min-height: 140px; } .status { align-items: flex-start; flex-direction: column; } }
+    @media (max-width: 700px) { header { min-height: 13vh; padding-top: 72px; } .admin-link { top: 16px; right: 16px; } main { width: 90vw; justify-content: flex-start; } .menu { grid-template-columns: 1fr; } button { min-height: 140px; } .status { align-items: flex-start; flex-direction: column; } }
   </style>
 </head>
 <body>
   <header>
+    <a class="admin-link" href="/admin">관리자 페이지</a>
     <h1><span class="brand-ros">ROSKIN</span> <span class="brand-robbins">ROBBINS</span></h1>
     <div>ROBOT ICE CREAM SHOP · 원하는 맛을 선택해 주세요</div>
   </header>
@@ -48,11 +51,7 @@
       <span>로봇 상태</span>
       <span class="ready">● 준비 완료</span>
     </section>
-    <section class="menu" aria-label="아이스크림 메뉴">
-      <button type="button" data-flavor="바닐라"><span class="emoji">🍦</span>바닐라</button>
-      <button type="button" data-flavor="초콜릿"><span class="emoji">🍫</span>초콜릿</button>
-      <button type="button" data-flavor="딸기"><span class="emoji">🍓</span>딸기</button>
-    </section>
+    <section id="menu" class="menu" aria-label="아이스크림 메뉴"></section>
     <button id="order" class="order" type="button" disabled>주문하기</button>
     <p id="message" aria-live="polite">메뉴를 선택해 주세요.</p>
   </main>
@@ -60,7 +59,7 @@
     <h2>아이스크림 제작 중</h2>
     <p><strong id="makingFlavor"></strong> 아이스크림을 만들고 있습니다.</p>
     <div class="gear" aria-hidden="true">⚙️</div>
-    <div id="timer" class="timer">남은 시간 10초</div>
+    <div id="timer" class="timer">주문을 처리하고 있습니다.</div>
     <div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
       <div id="progressBar" class="progress-bar"></div>
     </div>
@@ -72,7 +71,7 @@
     <button id="restart" class="restart" type="button">처음으로</button>
   </main>
   <script>
-    const menuButtons = [...document.querySelectorAll('[data-flavor]')];
+    const menu = document.querySelector('#menu');
     const orderButton = document.querySelector('#order');
     const message = document.querySelector('#message');
     const orderScreen = document.querySelector("#orderScreen");
@@ -84,55 +83,116 @@
     const progressBar = document.querySelector("#progressBar");
     const progressTrack = document.querySelector(".progress-track");
     const restartButton = document.querySelector("#restart");
-    let selectedFlavor = '';
-    let countdownId;
+    const flavorEmoji = { '바닐라': '🍦', '초콜릿': '🍫', '딸기': '🍓' };
+    let selectedFlavor = null;
+    let statusPollId;
+    let completionTimeoutId;
 
-    menuButtons.forEach((button) => {
-      button.addEventListener('click', () => {
-        menuButtons.forEach((item) => item.classList.remove('selected'));
-        button.classList.add('selected');
-        selectedFlavor = button.dataset.flavor;
-        orderButton.disabled = false;
-        message.textContent = `${selectedFlavor} 맛을 선택했습니다.`;
-      });
-    });
-
-    function startMaking() {
-      const totalSeconds = 10;
-      let remainingSeconds = totalSeconds;
-      orderScreen.hidden = true;
-      makingScreen.hidden = false;
-      makingFlavor.textContent = selectedFlavor;
-      timer.textContent = `남은 시간 ${remainingSeconds}초`;
-      progressBar.style.width = "0%";
-      progressTrack.setAttribute("aria-valuenow", "0");
-      clearInterval(countdownId);
-      countdownId = setInterval(() => {
-        remainingSeconds -= 1;
-        const progress = ((totalSeconds - remainingSeconds) / totalSeconds) * 100;
-        timer.textContent = `남은 시간 ${remainingSeconds}초`;
-        progressBar.style.width = `${progress}%`;
-        progressTrack.setAttribute("aria-valuenow", String(progress));
-        if (remainingSeconds <= 0) {
-          clearInterval(countdownId);
-          makingScreen.hidden = true;
-          completeScreen.hidden = false;
-          completeFlavor.textContent = selectedFlavor;
-        }
-      }, 1000);
+    function selectFlavor(button, flavor) {
+      document.querySelectorAll('[data-flavor-id]').forEach((item) => item.classList.remove('selected'));
+      button.classList.add('selected');
+      selectedFlavor = flavor;
+      orderButton.disabled = false;
+      message.textContent = `${flavor.name} 맛을 선택했습니다.`;
     }
 
-    orderButton.addEventListener('click', () => {
-      startMaking();
-    });
+    async function loadFlavors() {
+      selectedFlavor = null;
+      orderButton.disabled = true;
+      message.textContent = '판매 가능한 메뉴를 불러오는 중입니다.';
+      try {
+        const response = await fetch('/flavors?available_only=true');
+        if (!response.ok) throw new Error('메뉴 조회 실패');
+        const flavors = await response.json();
+        menu.replaceChildren();
+        flavors.forEach((flavor) => {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.dataset.flavorId = flavor.id;
+          button.innerHTML = `<span class="emoji">${flavorEmoji[flavor.name] || '🍨'}</span>${flavor.name}`;
+          button.addEventListener('click', () => selectFlavor(button, flavor));
+          menu.appendChild(button);
+        });
+        message.textContent = flavors.length ? '메뉴를 선택해 주세요.' : '현재 판매 가능한 메뉴가 없습니다.';
+      } catch (error) {
+        message.textContent = '서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.';
+      }
+    }
+
+    async function pollOrder(orderId) {
+      try {
+        const response = await fetch(`/orders/${orderId}`);
+        if (!response.ok) throw new Error('주문 상태 조회 실패');
+        const order = await response.json();
+        if (order.status === 'PENDING') {
+          timer.textContent = '로봇 배정 대기 중';
+          progressBar.style.width = '5%';
+          progressTrack.setAttribute('aria-valuenow', '5');
+        } else if (order.status === 'PROCESSING') {
+          timer.textContent = '아이스크림 제조 중';
+          progressBar.style.width = '35%';
+          progressTrack.setAttribute('aria-valuenow', '35');
+        } else if (order.status === 'COMPLETED') {
+          clearInterval(statusPollId);
+          timer.textContent = '아이스크림 제조 완료';
+          progressBar.style.width = '100%';
+          progressTrack.setAttribute('aria-valuenow', '100');
+          clearTimeout(completionTimeoutId);
+          completionTimeoutId = setTimeout(() => {
+            makingScreen.hidden = true;
+            completeScreen.hidden = false;
+            completeFlavor.textContent = order.flavor_name;
+          }, 1200);
+        } else if (order.status === 'FAILED') {
+          clearInterval(statusPollId);
+          makingScreen.hidden = true;
+          orderScreen.hidden = false;
+          message.textContent = '아이스크림 제조에 실패했습니다. 관리자에게 문의해 주세요.';
+        }
+      } catch (error) {
+        timer.textContent = '주문 상태를 다시 확인하고 있습니다.';
+      }
+    }
+
+    async function createOrder() {
+      if (!selectedFlavor) return;
+      orderButton.disabled = true;
+      message.textContent = '주문을 접수하고 있습니다.';
+      try {
+        const response = await fetch('/orders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ flavor_id: selectedFlavor.id }),
+        });
+        const body = await response.json();
+        if (!response.ok) throw new Error(body.detail || '주문 생성 실패');
+        startMaking(body);
+      } catch (error) {
+        orderButton.disabled = false;
+        message.textContent = error.message;
+      }
+    }
+
+    function startMaking(order) {
+      orderScreen.hidden = true;
+      makingScreen.hidden = false;
+      makingFlavor.textContent = order.flavor_name;
+      timer.textContent = '로봇 배정 대기 중';
+      progressBar.style.width = '5%';
+      progressTrack.setAttribute('aria-valuenow', '5');
+      clearInterval(statusPollId);
+      clearTimeout(completionTimeoutId);
+      statusPollId = setInterval(() => pollOrder(order.id), 2000);
+    }
+
+    orderButton.addEventListener('click', createOrder);
     restartButton.addEventListener("click", () => {
+      clearTimeout(completionTimeoutId);
       completeScreen.hidden = true;
       orderScreen.hidden = false;
-      selectedFlavor = "";
-      menuButtons.forEach((item) => item.classList.remove("selected"));
-      orderButton.disabled = true;
-      message.textContent = "메뉴를 선택해 주세요.";
+      loadFlavors();
     });
+    loadFlavors();
   </script>
 </body>
 </html>
