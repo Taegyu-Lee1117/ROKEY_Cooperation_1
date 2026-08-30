@@ -1,7 +1,8 @@
+from glob import glob
 from setuptools import find_packages, setup
 
 
-package_name = "ice_cream_pj"
+package_name = "icecream_pj"
 
 setup(
     name=package_name,
@@ -10,6 +11,7 @@ setup(
     data_files=[
         ("share/ament_index/resource_index/packages", ["resource/" + package_name]),
         ("share/" + package_name, ["package.xml"]),
+        ("share/" + package_name + "/launch", glob("launch/*.launch.py")),
     ],
     install_requires=["setuptools"],
     zip_safe=True,
@@ -19,9 +21,8 @@ setup(
     license="Apache-2.0",
     entry_points={
         "console_scripts": [
-            "first = ice_cream_pj.first:main",
-            "second = ice_cream_pj.second:main",
-            "order_bridge = ice_cream_pj.order_bridge:main",
+            "order_bridge = icecream_pj.integrated_order_bridge:main",
+            "make_icecream_server = icecream_pj.make_icecream_server:main",
         ],
     },
 )

@@ -297,18 +297,34 @@ button:focus-visible{ outline:4px solid var(--mint); outline-offset:3px; }
   content:""; position:absolute; inset:0;
   background:radial-gradient(400px 300px at 50% 20%, var(--pink-soft), transparent 70%);
 }
-.recept-visual svg{ width:66%; height:auto; position:relative; }
+.recept-visual svg{ width:66%; height:auto; position:relative; filter:drop-shadow(0 18px 18px rgba(31,63,191,.12)); }
+.visual-note{
+  position:absolute; left:24px; top:24px; z-index:2;
+  display:flex; align-items:center; gap:9px;
+  padding:9px 14px; border-radius:999px;
+  background:rgba(255,255,255,.88); border:1.5px solid rgba(31,63,191,.12);
+  color:var(--blue); font-size:13px; font-weight:800; letter-spacing:.03em;
+  box-shadow:0 6px 18px rgba(19,21,53,.07);
+}
+.visual-note i{ width:9px; height:9px; border-radius:50%; background:var(--flavor-color, var(--pink)); }
 .reclist{ display:flex; flex-direction:column; gap:12px; justify-content:center; align-items:center; }
 .recrow{
-  width:min(100%, 430px); min-height:260px;
-  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px;
+  --flavor-color:var(--pink);
+  width:min(100%, 460px); min-height:320px;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:0;
   text-align:center;
-  background:#fff; border-radius:var(--r-lg); padding:34px 28px;
-  box-shadow:0 6px 18px rgba(19,21,53,.06);
+  background:linear-gradient(155deg, #fff 55%, color-mix(in srgb, var(--flavor-color) 12%, #fff));
+  border:2px solid color-mix(in srgb, var(--flavor-color) 22%, #fff);
+  border-radius:32px; padding:38px 34px;
+  box-shadow:0 18px 46px rgba(19,21,53,.09);
 }
-.recrow .k{ width:auto; font-size:40px; font-weight:800; color:var(--ink); letter-spacing:-.03em; }
-.recrow .v{ flex:0 0 auto; font-size:34px; font-weight:800; letter-spacing:-.03em; }
-.recrow .p{ font-family:var(--font-mono); font-size:24px; font-weight:800; color:var(--pink); }
+.recrow .k{ font-size:13px; font-weight:800; color:var(--blue); letter-spacing:.13em; }
+.recrow .flavor-dot{ width:13px; height:13px; border-radius:50%; background:var(--flavor-color); margin:16px 0 12px; box-shadow:0 0 0 7px color-mix(in srgb, var(--flavor-color) 16%, transparent); }
+.recrow .v{ font-size:38px; font-weight:800; letter-spacing:-.04em; line-height:1.15; }
+.recrow .d{ max-width:300px; margin-top:11px; font-size:15px; color:var(--ink-mute); font-weight:600; line-height:1.5; }
+.recrow .price-line{ width:72px; height:2px; margin:24px 0 18px; background:color-mix(in srgb, var(--flavor-color) 38%, #e6e9f5); }
+.recrow .price-label{ font-size:12px; font-weight:800; color:var(--ink-mute); letter-spacing:.1em; margin-bottom:5px; }
+.recrow .p{ font-family:var(--font-mono); font-size:28px; font-weight:800; color:var(--pink); }
 .rectotal{
   display:flex; align-items:baseline; gap:14px;
   background:var(--blue); color:#fff; border-radius:var(--r-md); padding:22px 26px;
@@ -606,6 +622,35 @@ button:focus-visible{ outline:4px solid var(--mint); outline-offset:3px; }
 .updbar.on{ display:block; }
 .updbar i{ display:block; height:100%; width:0; background:var(--hmi-cyan); transition:width .3s linear; }
 
+/* 맛 관리 */
+.flavor-admin-current{ margin-bottom:12px; padding:10px 12px; border-radius:10px; background:#111725; color:var(--hmi-text); font-size:12px; }
+.flavor-admin-current strong{ color:var(--hmi-cyan); }
+.flavor-admin-list{ display:flex; flex-direction:column; gap:10px; }
+.flavor-edit-row{ display:grid; grid-template-columns:70px repeat(2,minmax(120px,1fr)) 88px; gap:8px; padding:12px; border:1px solid var(--hmi-line); border-radius:12px; background:#111725; align-items:center; }
+.flavor-edit-row.selected{ border-color:var(--hmi-cyan); box-shadow:0 0 0 1px rgba(0,217,226,.2); }
+.flavor-edit-row .flavor-id{ font:700 12px var(--font-mono); color:var(--hmi-cyan); }
+.flavor-edit-row input[type="text"]{ width:100%; height:36px; padding:0 10px; border:1px solid var(--hmi-line); border-radius:8px; background:#0C111C; color:var(--hmi-text); font-size:12px; }
+.flavor-edit-row .wide{ grid-column:span 2; }
+.flavor-edit-row label{ display:flex; align-items:center; gap:6px; color:var(--hmi-dim); font-size:11px; }
+.flavor-save{ height:36px; border-radius:8px; background:#285C9B; color:#fff; font-weight:800; }
+.flavor-selection-save{ width:100%; height:44px; margin-top:12px; border-radius:10px; background:#285C9B; color:#fff; font-weight:800; }
+.flavor-selection-save:disabled{ opacity:.4; cursor:not-allowed; }
+.flavor-edit-row{ cursor:pointer; }
+.flavor-edit-row .flavor-copy{ min-width:0; }
+.flavor-edit-row .flavor-copy strong{ display:block; color:var(--hmi-text); font-size:13px; }
+.flavor-edit-row .flavor-copy span{ display:block; margin-top:4px; color:var(--hmi-dim); font-size:11px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.flavor-edit-row .selection-state{ justify-self:end; color:var(--hmi-dim); font-size:12px; font-weight:800; }
+.flavor-edit-row.selected .selection-state{ color:var(--hmi-cyan); }
+@media (max-width:900px){ .flavor-edit-row{ grid-template-columns:60px 1fr 1fr; } .flavor-save{ grid-column:3; } }
+.flavor-selection-save{ width:100%; height:44px; margin-top:12px; border-radius:10px; background:#285C9B; color:#fff; font-weight:800; }
+.flavor-selection-save:disabled{ opacity:.4; cursor:not-allowed; }
+.flavor-edit-row{ cursor:pointer; }
+.flavor-edit-row .flavor-copy{ min-width:0; }
+.flavor-edit-row .flavor-copy strong{ display:block; color:var(--hmi-text); font-size:13px; }
+.flavor-edit-row .flavor-copy span{ display:block; margin-top:4px; color:var(--hmi-dim); font-size:11px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.flavor-edit-row .selection-state{ justify-self:end; color:var(--hmi-dim); font-size:12px; font-weight:800; }
+.flavor-edit-row.selected .selection-state{ color:var(--hmi-cyan); }
+
 /* 로그 */
 .logs{ font-family:var(--font-mono); font-size:12px; line-height:1.75; }
 .logrow{
@@ -619,6 +664,74 @@ button:focus-visible{ outline:4px solid var(--mint); outline-offset:3px; }
 .ll.WARN{ color:var(--hmi-amber); }
 .ll.ERR{ color:var(--hmi-red); }
 .ll.OK{ color:var(--hmi-green); }
+
+/* ============ 간소화 관리자 대시보드 ============ */
+.admin-dashboard{
+  flex:1; min-height:0; overflow-y:auto;
+  padding:18px 22px 30px; display:flex; flex-direction:column; gap:14px;
+  background:radial-gradient(900px 480px at 100% 0%, rgba(0,217,226,.06), transparent 65%), var(--hmi-bg);
+}
+.admin-dashboard::-webkit-scrollbar{ width:8px; }
+.admin-dashboard::-webkit-scrollbar-thumb{ background:var(--hmi-line); border-radius:8px; }
+.admin-card{
+  background:var(--hmi-panel); border:1px solid var(--hmi-line); border-radius:16px;
+  padding:16px; box-shadow:0 9px 26px rgba(0,0,0,.12);
+}
+.admin-section-title{ margin-bottom:12px; }
+.admin-section-title h3{ font-size:15px; font-weight:800; color:var(--hmi-text); letter-spacing:-.01em; }
+.admin-section-title h3 small{ color:var(--hmi-dim); font-size:12px; }
+.admin-section-title p{ margin-top:4px; font-size:11.5px; color:var(--hmi-dim); }
+.status-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+.status-box{
+  min-height:66px; padding:12px 14px; border-radius:12px;
+  background:#111725; border:1px solid rgba(37,48,72,.85);
+  display:flex; flex-direction:column; justify-content:center; gap:7px;
+}
+.status-box span{ font-size:10.5px; color:var(--hmi-dim); }
+.status-box strong{ font-family:var(--font-mono); font-size:13px; color:var(--hmi-text); }
+.status-box .state-ready{ color:var(--hmi-green); }
+.status-box .state-stop{ color:var(--hmi-red); }
+.control-grid{ display:grid; gap:10px; }
+.control-grid.four{ grid-template-columns:repeat(4,1fr); }
+.control-grid.five{ grid-template-columns:repeat(5,1fr); }
+.control-grid.three{ grid-template-columns:repeat(3,1fr); }
+.control-btn,.position-btn,.gripper-btn{
+  display:flex; align-items:center; justify-content:center; text-align:center;
+  min-height:50px; border-radius:11px; color:#fff; font-size:14px; font-weight:800;
+  transition:transform .14s, filter .16s, box-shadow .16s;
+}
+.control-btn:hover,.position-btn:hover,.gripper-btn:hover{ filter:brightness(1.12); box-shadow:0 8px 20px rgba(0,0,0,.2); }
+.control-btn:active,.position-btn:active,.gripper-btn:active{ transform:scale(.98); }
+.control-btn.start{ background:#285C9B; border:1px solid #3974B9; }
+.control-btn.pause{ background:#6B5935; border:1px solid #8B7447; }
+.control-btn.end{ background:#3A4354; border:1px solid #515D72; }
+.control-btn.estop{ background:#883747; border:1px solid #A94B5E; }
+.control-btn.estop.rel{ background:var(--hmi-green); color:#061910; }
+.position-btn{ background:#354056; border:1px solid #4B5872; }
+.position-btn.primary{ background:#294A82; border:1px solid #3C65A4; }
+.gripper-btn{ background:#5E4A72; border:1px solid #79618E; }
+.joint-control-grid{ display:grid; grid-template-columns:repeat(6,1fr); gap:10px; }
+.joint-control{
+  background:#111725; border:1px solid var(--hmi-line); border-radius:12px;
+  padding:12px 10px; text-align:center;
+}
+.joint-control label{ display:block; font-family:var(--font-mono); font-size:12px; font-weight:800; margin-bottom:9px; }
+.joint-control input[type="number"]{
+  width:66px; height:30px; border-radius:7px; border:1px solid var(--hmi-line);
+  background:#0C111C; color:var(--hmi-text); text-align:center; font-family:var(--font-mono); font-weight:700;
+}
+.joint-control input[type="range"]{ width:100%; margin-top:10px; accent-color:var(--hmi-cyan); }
+.joint-scale{ display:flex; justify-content:space-between; color:var(--hmi-dim); font-family:var(--font-mono); font-size:9px; margin-top:2px; }
+.log-card .logs{
+  height:140px; overflow-y:auto; padding:8px; border-radius:10px;
+  background:#0B0E15; border:1px solid #252A36;
+}
+@media (max-width:900px){
+  .status-grid{ grid-template-columns:repeat(2,1fr); }
+  .control-grid.four{ grid-template-columns:repeat(2,1fr); }
+  .control-grid.five{ grid-template-columns:repeat(2,1fr); }
+  .joint-control-grid{ grid-template-columns:repeat(3,1fr); }
+}
 
 /* 토스트 */
 #toast{
@@ -700,7 +813,7 @@ button:focus-visible{ outline:4px solid var(--mint); outline-offset:3px; }
         <h2 id="confirmTitle">선택한 맛을 확인해 주세요</h2>
       </div>
       <div class="receipt">
-        <div class="recept-visual"><svg viewBox="0 0 200 260"><use href="#cupArt"/></svg></div>
+        <div class="recept-visual"><div class="visual-note" id="visualNote"><i></i><span>ROBOT SCOOPED</span></div><svg viewBox="0 0 200 260"><use href="#cupArt"/></svg></div>
         <div class="reclist" id="recList"></div>
       </div>
     </section>
@@ -709,7 +822,7 @@ button:focus-visible{ outline:4px solid var(--mint); outline-offset:3px; }
     <section class="screen" id="s-making">
       <div class="head">
         <h2 id="makeTitle">로봇 제조 작업 진행 중</h2>
-        <p><span id="orderNumberLabel">주문번호</span> <span class="accent" id="makeNo">A-031</span> · <span id="remainingTimeLabel">남은 시간 약</span> <span id="makeEta">88</span><span id="secondsLabel">초</span></p>
+        <p><span id="orderNumberLabel">주문번호</span> <span class="accent" id="makeNo">A-031</span></p>
       </div>
       <div class="make-wrap">
         <div class="robot-stage">
@@ -766,8 +879,6 @@ button:focus-visible{ outline:4px solid var(--mint); outline-offset:3px; }
        관리자 패널
        ══════════════════════════════════════════ -->
   <div id="admin">
-
-    <!-- PIN -->
     <div id="pinpad">
       <h4>관리자 인증</h4>
       <div class="pindots" id="pinDots"><i></i><i></i><i></i><i></i></div>
@@ -778,240 +889,71 @@ button:focus-visible{ outline:4px solid var(--mint); outline-offset:3px; }
     </div>
 
     <div class="ahead">
-      <div class="atitle">관리자 콘솔 <span>ROSkin Robbins · Station A-3</span></div>
+      <div class="atitle">Robot Admin <span>ROSkin Robbins · Station A-3</span></div>
       <div class="spacer"></div>
-      <div class="hmi-stat">DRCF <b>v2.12.1</b></div>
-      <div class="hmi-stat">ROS 2 <b>Jazzy</b></div>
       <div class="hmi-stat"><i class="dot pulse"></i><b id="hmiClock">--:--:--</b></div>
       <button class="aclose" onclick="closeAdmin()">닫기</button>
     </div>
 
-    <div class="estop-row">
-      <button id="estopBtn" onclick="toggleEstop()">
-        <span style="font-size:20px">⏹</span><span id="estopLabel">비상 정지</span>
-      </button>
-      <div class="note" id="estopNote">누르면 즉시 서보 전원이 차단되고 키오스크 주문이 잠깁니다.</div>
-    </div>
+    <div class="admin-dashboard">
+      <section class="admin-card">
+        <div class="admin-section-title"><h3>Robot Status</h3><p>로봇과 ROS 2 연결 상태를 확인합니다.</p></div>
+        <div class="status-grid">
+          <div class="status-box"><span>Robot 상태</span><strong class="state-ready" id="adminRobotState">● READY</strong></div>
+          <div class="status-box"><span>ROS 2 연결</span><strong class="state-ready" id="adminRosState">● CONNECTED</strong></div>
+          <div class="status-box"><span>현재 작업</span><strong id="vAct">IDLE</strong></div>
+          <div class="status-box"><span>서보 상태</span><strong class="state-ready" id="vServo">ON</strong></div>
+        </div>
+      </section>
 
-    <div class="atabs" id="aTabs">
-      <button class="atab on" data-p="p-status">로봇 상태</button>
-      <button class="atab" data-p="p-recover">오작동 대응</button>
-      <button class="atab" data-p="p-stock">재고</button>
-      <button class="atab" data-p="p-calib">위치 보정</button>
-      <button class="atab" data-p="p-update">시스템 · 업데이트</button>
-      <button class="atab" data-p="p-log">로그</button>
-    </div>
+      <section class="admin-card">
+        <div class="admin-section-title"><h3>Robot Control</h3><p>자동 제조 공정의 실행 상태를 제어합니다.</p></div>
+        <div class="control-grid four">
+          <button class="control-btn start admin-command-btn" onclick="sendRobotAdminCommand('START')">시작</button>
+          <button class="control-btn pause admin-command-btn" onclick="sendRobotAdminCommand('PAUSE')">정지</button>
+          <button class="control-btn end admin-command-btn" onclick="sendRobotAdminCommand('END')">종료</button>
+          <button class="control-btn estop" id="estopBtn" disabled title="긴급정지는 추후 구현 예정입니다."><span id="estopLabel">긴급정지 (준비 중)</span></button>
+        </div>
+      </section>
 
-    <div class="abody">
+      <section class="admin-card">
+        <div class="admin-section-title"><h3>Position Control</h3><p>로봇을 아이스크림 제조 공정의 주요 위치로 이동합니다.</p></div>
+        <div class="control-grid three">
+          <button class="position-btn primary admin-command-btn" onclick="sendRobotAdminCommand('HOME')">Home</button>
+          <button class="position-btn admin-command-btn" onclick="sendRobotAdminCommand('CUP_PICK')">컵 파지 위치</button>
+          <button class="position-btn admin-command-btn" onclick="sendRobotAdminCommand('CUP_PLACE')">컵 놓기 위치</button>
+          <button class="position-btn admin-command-btn" onclick="sendRobotAdminCommand('SCOOP_PICK')">스쿱 파지 위치</button>
+          <button class="position-btn admin-command-btn" onclick="sendRobotAdminCommand('ICECREAM')">아이스크림 통 위치</button>
+          <button class="position-btn admin-command-btn" onclick="sendRobotAdminCommand('SERVE_CUP')">손님 전달 위치</button>
+        </div>
+      </section>
 
-      <!-- 로봇 상태 -->
-      <div class="apane on" id="p-status">
-        <div class="acols g3">
-          <div class="panel">
-            <h5>관절 각도 (deg)</h5>
-            <div id="jointRows"></div>
-          </div>
-          <div class="panel">
-            <h5>TCP · 힘 센서</h5>
-            <div id="tcpRows"></div>
-          </div>
-          <div class="panel">
-            <h5>엔드이펙터 · 모드</h5>
-            <div class="drow"><span class="dk">그리퍼</span><span class="dv ok" id="vGrip">RELEASED</span></div>
-            <div class="drow"><span class="dk">DI1 Grasp_in</span><span class="dv" id="vDi1">0</span></div>
-            <div class="drow"><span class="dk">DI2 Release_in</span><span class="dv hi" id="vDi2">1</span></div>
-            <div class="drow"><span class="dk">스쿱 툴</span><span class="dv" id="vTool">거치대</span></div>
-            <div class="drow"><span class="dk">컴플라이언스</span><span class="dv warn" id="vComp">OFF</span></div>
-            <div class="drow"><span class="dk">서보</span><span class="dv ok" id="vServo">ON</span></div>
-            <div class="drow"><span class="dk">현재 동작</span><span class="dv hi" id="vAct">IDLE</span></div>
-          </div>
+      <section class="admin-card">
+        <div class="admin-section-title"><h3>Gripper Control</h3><p>RG2 그리퍼의 열림과 파지 동작을 제어합니다.</p></div>
+        <div class="control-grid three">
+          <button class="gripper-btn admin-command-btn" onclick="sendRobotAdminCommand('GRIPPER_OPEN')">그리퍼 열기</button>
+          <button class="gripper-btn admin-command-btn" onclick="sendRobotAdminCommand('GRIPPER_CUP')">컵 파지</button>
+          <button class="gripper-btn admin-command-btn" onclick="sendRobotAdminCommand('GRIPPER_SCOOP')">스쿱 파지</button>
         </div>
-        <div class="acols g2" style="margin-top:16px">
-          <div class="panel">
-            <h5>ROS 2 노드 (6)</h5>
-            <div id="nodeList"></div>
-          </div>
-          <div class="panel">
-            <h5>오늘의 운영</h5>
-            <div class="drow"><span class="dk">완료 주문</span><span class="dv">31 건</span></div>
-            <div class="drow"><span class="dk">평균 제조</span><span class="dv">88.4 s</span></div>
-            <div class="drow"><span class="dk">스쿱 실패</span><span class="dv warn">2 회 (재시도 성공)</span></div>
-            <div class="drow"><span class="dk">비상 정지</span><span class="dv ok">0 회</span></div>
-            <div class="drow"><span class="dk">가동 시간</span><span class="dv">06:12:44</span></div>
-            <div class="drow"><span class="dk">최대 접촉력</span><span class="dv">Fx −11.7 N (한계 20)</span></div>
-          </div>
-        </div>
-      </div>
+      </section>
 
-      <!-- 오작동 대응 -->
-      <div class="apane" id="p-recover">
-        <div class="acols g2">
-          <div class="panel">
-            <h5>1단계 · 복구</h5>
-            <div class="abtns">
-              <button class="abtn go" onclick="act('알람을 지웠습니다','✓')">
-                <span class="at">알람 해제</span><span class="ad">release_protective_stop()</span></button>
-              <button class="abtn go" onclick="act('서보 전원을 켰습니다','✓')">
-                <span class="at">서보 ON</span><span class="ad">set_robot_mode(AUTONOMOUS)</span></button>
-              <button class="abtn" onclick="act('컴플라이언스 제어를 해제했습니다','✓')">
-                <span class="at">컴플라이언스 해제</span><span class="ad">release_compliance_ctrl()</span></button>
-              <button class="abtn" onclick="act('그리퍼를 열었습니다','✓')">
-                <span class="at">그리퍼 강제 열기</span><span class="ad">set_digital_output(2, ON)</span></button>
-              <button class="abtn wide" onclick="act('홈 자세로 복귀했습니다 · J3 90 / J5 90','✓')">
-                <span class="at">홈 자세 복귀 (안전 경로)</span>
-                <span class="ad">movej(posj(0,0,90,0,90,0)) · J5=0 특이점 회피 경유점 사용</span></button>
-            </div>
-          </div>
-          <div class="panel">
-            <h5>2단계 · 진행 중인 주문 처리</h5>
-            <div class="abtns">
-              <button class="abtn" onclick="act('현재 동작을 일시 정지했습니다','⏸')">
-                <span class="at">일시 정지</span><span class="ad">motion/pause</span></button>
-              <button class="abtn go" onclick="act('동작을 이어서 진행합니다','▶')">
-                <span class="at">이어서 진행</span><span class="ad">motion/resume</span></button>
-              <button class="abtn danger" onclick="act('현재 주문을 취소하고 컵을 폐기 위치로 옮깁니다','✕')">
-                <span class="at">주문 취소 · 컵 폐기</span><span class="ad">abort → P_TRASH</span></button>
-              <button class="abtn danger" onclick="act('스쿱 툴을 거치대에 반납했습니다','✕')">
-                <span class="at">스쿱 툴 강제 반납</span><span class="ad">force_return → P_TOOL</span></button>
-              <button class="abtn wide danger" onclick="act('키오스크를 점검 모드로 전환했습니다','🔧')">
-                <span class="at">점검 모드 전환</span>
-                <span class="ad">신규 주문 접수를 막고 대기 손님에게 안내 화면을 띄웁니다</span></button>
-            </div>
-          </div>
-        </div>
-        <div class="acols g2" style="margin-top:16px">
-          <div class="panel">
-            <h5>자주 나는 오류 · 바로 조치</h5>
-            <div class="abtns">
-              <button class="abtn" onclick="act('오류 2.1903 조치: movej 전 컴플라이언스를 껐습니다','✓')">
-                <span class="at">2.1903 모션 충돌</span><span class="ad">movej 중 compliance ON → 자동 해제</span></button>
-              <button class="abtn" onclick="act('힘 센서를 영점 조정했습니다','✓')">
-                <span class="at">힘 값이 튄다</span><span class="ad">task_compliance_ctrl 재설정 + 센서 영점</span></button>
-              <button class="abtn" onclick="act('J5 특이점 회피 경유점을 다시 적용했습니다','✓')">
-                <span class="at">손목이 갑자기 돈다</span><span class="ad">J5=0 특이점 · 경유 자세 재적용</span></button>
-              <button class="abtn" onclick="act('플랜지 I/O를 다시 초기화했습니다','✓')">
-                <span class="at">그리퍼가 안 잡힌다</span><span class="ad">flange DO1/DO2 재초기화 · 공압 확인</span></button>
-            </div>
-          </div>
-          <div class="panel">
-            <h5>지금 상태</h5>
-            <div class="drow"><span class="dk">최근 오류</span><span class="dv warn">2.1903 (12분 전 · 자동 복구)</span></div>
-            <div class="drow"><span class="dk">보호 정지</span><span class="dv ok">없음</span></div>
-            <div class="drow"><span class="dk">통신</span><span class="dv ok">192.168.1.100 연결됨</span></div>
-            <div class="drow"><span class="dk">도메인</span><span class="dv">ROS_DOMAIN_ID = 30</span></div>
-            <div class="drow"><span class="dk">모드</span><span class="dv hi">AUTONOMOUS</span></div>
-            <div style="margin-top:14px">
-              <button class="abtn danger wide" style="width:100%" onclick="act('제조사 원격 지원을 요청했습니다 · 티켓 #A3-0412','📞')">
-                <span class="at">원격 지원 요청</span><span class="ad">진단 로그를 첨부해 담당자를 호출합니다</span></button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <section class="admin-card">
+        <div class="admin-section-title"><h3>Joint Control <small>(degree)</small></h3><p>드래그하거나 값을 입력해 J1~J6 목표 각도를 설정합니다.</p></div>
+        <div class="joint-control-grid" id="jointControlGrid"></div>
+        <button class="control-btn start admin-command-btn" id="moveJointsBtn" type="button" style="width:100%; margin-top:12px;" onclick="moveJoints()">입력한 관절 위치로 이동</button>
+      </section>
 
-      <!-- 재고 -->
-      <div class="apane" id="p-stock">
-        <div class="acols g2">
-          <div class="panel">
-            <h5>아이스크림 통</h5>
-            <div id="stockIce"></div>
-            <button class="abtn wide go" style="width:100%; margin-top:6px" onclick="refillAll()">
-              <span class="at">전체 보충 완료로 표시</span><span class="ad">통 교체 후 눌러 주세요</span></button>
-          </div>
-          <div class="panel">
-            <h5>부자재</h5>
-            <div id="stockSub"></div>
-            <div class="drow" style="margin-top:10px"><span class="dk">다음 점검</span><span class="dv warn">오늘 18:00 · 스푼 보충</span></div>
-          </div>
-        </div>
-        <div class="panel" style="margin-top:16px">
-          <h5>품절 처리</h5>
-          <div class="abtns" id="soldoutBtns"></div>
-        </div>
-      </div>
+      <section class="admin-card flavor-admin-card">
+        <div class="admin-section-title"><h3>Flavor Management</h3><p>DB에 등록된 맛 중 키오스크에 표시할 맛 3개를 선택합니다.</p></div>
+        <div class="flavor-admin-current">현재 메뉴 맛 · <strong id="adminSelectedFlavor">불러오는 중</strong></div>
+        <div class="flavor-admin-list" id="flavorAdminList"></div>
+        <button class="flavor-selection-save" id="saveFlavorSelection" type="button" onclick="saveAdminFlavorSelection()" disabled>선택한 3개 맛 저장</button>
+      </section>
 
-      <!-- 위치 보정 -->
-      <div class="apane" id="p-calib">
-        <div class="panel">
-          <h5>티칭 포인트</h5>
-          <table class="coord">
-            <thead><tr><th style="width:130px">이름</th><th>X</th><th>Y</th><th>Z</th><th>A</th><th>B</th><th>C</th><th style="width:180px">설명</th><th></th></tr></thead>
-            <tbody id="coordBody"></tbody>
-          </table>
-        </div>
-        <div class="acols g2" style="margin-top:16px">
-          <div class="panel">
-            <h5>스쿱 동작 파라미터</h5>
-            <div class="drow"><span class="dk">진입 각도</span><span class="dv hi">36.7 °</span></div>
-            <div class="drow"><span class="dk">전진 거리</span><span class="dv">+60.0 mm (X)</span></div>
-            <div class="drow"><span class="dk">접촉 판정</span><span class="dv">Fx ≤ −6.0 N</span></div>
-            <div class="drow"><span class="dk">비상 한계</span><span class="dv bad">Fx ≤ −20.0 N</span></div>
-            <div class="drow"><span class="dk">상승 높이</span><span class="dv">Z 318.34 mm</span></div>
-            <div class="drow"><span class="dk">컴플라이언스 강성</span><span class="dv">X 400 / 그 외 3000</span></div>
-          </div>
-          <div class="panel">
-            <h5>보정 작업</h5>
-            <div class="abtns">
-              <button class="abtn" onclick="act('직접 교시 모드입니다. 팔을 손으로 옮기세요','🖐')">
-                <span class="at">직접 교시 모드</span><span class="ad">중력 보상 ON · 수동 이동</span></button>
-              <button class="abtn go" onclick="act('현재 자세를 저장했습니다','✓')">
-                <span class="at">현재 위치 저장</span><span class="ad">get_current_posx() → 선택 포인트</span></button>
-              <button class="abtn" onclick="act('저장된 포인트로 천천히 이동합니다','▶')">
-                <span class="at">포인트 확인 이동</span><span class="ad">속도 10% 검증 이동</span></button>
-              <button class="abtn danger" onclick="act('마지막 저장 전으로 되돌렸습니다','↺')">
-                <span class="at">되돌리기</span><span class="ad">직전 좌표 복원</span></button>
-              <button class="abtn wide go" onclick="act('전체 포인트 검증 시퀀스를 시작합니다 (약 40초)','▶')">
-                <span class="at">전체 포인트 검증 실행</span>
-                <span class="ad">툴 → 스쿱 → 디스펜스 → 스푼 → 핸드오버 순으로 저속 순회</span></button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 시스템 / 업데이트 -->
-      <div class="apane" id="p-update">
-        <div class="panel">
-          <h5>소프트웨어 업데이트</h5>
-          <div id="updList"></div>
-          <div class="updbar" id="updBar"><i></i></div>
-        </div>
-        <div class="acols g2" style="margin-top:16px">
-          <div class="panel">
-            <h5>시스템 정보</h5>
-            <div class="drow"><span class="dk">로봇</span><span class="dv">Doosan M0609</span></div>
-            <div class="drow"><span class="dk">펌웨어</span><span class="dv">GV02120100 (v2.12.1)</span></div>
-            <div class="drow"><span class="dk">그리퍼</span><span class="dv">OnRobot RG2 · Double Action</span></div>
-            <div class="drow"><span class="dk">TCP Z 오프셋</span><span class="dv">210.0 mm</span></div>
-            <div class="drow"><span class="dk">OS</span><span class="dv">Ubuntu 24.04 · ROS 2 Jazzy</span></div>
-            <div class="drow"><span class="dk">키오스크</span><span class="dv">kiosk_ui v0.9.2</span></div>
-            <div class="drow"><span class="dk">IP</span><span class="dv hi">192.168.1.100</span></div>
-          </div>
-          <div class="panel">
-            <h5>유지 관리</h5>
-            <div class="abtns">
-              <button class="abtn" onclick="act('진단 로그를 USB로 내보냈습니다','💾')">
-                <span class="at">로그 내보내기</span><span class="ad">최근 7일 · rosbag + DRL trace</span></button>
-              <button class="abtn" onclick="act('현재 설정을 백업했습니다','💾')">
-                <span class="at">설정 백업</span><span class="ad">좌표 · 파라미터 · 메뉴</span></button>
-              <button class="abtn" onclick="act('화면 청소 모드 30초 시작','🧼')">
-                <span class="at">화면 청소 모드</span><span class="ad">터치 30초 잠금</span></button>
-              <button class="abtn danger" onclick="act('노드를 재시작합니다 (약 15초)','↻')">
-                <span class="at">노드 재시작</span><span class="ad">ros2 launch 재기동</span></button>
-              <button class="abtn wide danger" onclick="act('영업 종료 절차를 시작합니다','🌙')">
-                <span class="at">영업 종료</span>
-                <span class="ad">홈 복귀 → 툴 반납 → 그리퍼 개방 → 서보 OFF</span></button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 로그 -->
-      <div class="apane" id="p-log">
-        <div class="panel">
-          <h5>이벤트 로그</h5>
-          <div class="logs" id="logBody"></div>
-        </div>
-      </div>
-
+      <section class="admin-card log-card">
+        <div class="admin-section-title"><h3>System Log</h3><p>버튼 실행과 로봇 작업 상태를 시간순으로 표시합니다.</p></div>
+        <div class="logs" id="logBody"></div>
+      </section>
     </div>
   </div>
 
@@ -1041,10 +983,10 @@ button:focus-visible{ outline:4px solid var(--mint); outline-offset:3px; }
       <ellipse cx="100" cy="238" rx="52" ry="9" fill="#131535" opacity=".08"/>
       <path d="M58 118 L142 118 L131 232 Q130 240 122 240 L78 240 Q70 240 69 232 Z" fill="#fff" stroke="#1F3FBF" stroke-width="4" stroke-linejoin="round"/>
       <rect x="54" y="106" width="92" height="16" rx="8" fill="#1F3FBF"/>
-      <circle cx="100" cy="76" r="38" fill="#F58AA8"/>
+      <circle id="cupScoopMain" cx="100" cy="76" r="38" fill="#F58AA8"/>
       <circle cx="88" cy="66" r="9" fill="#fff" opacity=".45"/>
-      <circle cx="76" cy="96" r="24" fill="#F5E6C8"/>
-      <circle cx="124" cy="96" r="24" fill="#6B4226"/>
+      <circle id="cupScoopLeft" cx="76" cy="96" r="24" fill="#F58AA8"/>
+      <circle id="cupScoopRight" cx="124" cy="96" r="24" fill="#F58AA8"/>
       <rect x="112" y="20" width="9" height="62" rx="4.5" fill="#F0328C" transform="rotate(16 116 50)"/>
       <circle cx="82" cy="52" r="4" fill="#F0328C"/>
       <circle cx="118" cy="60" r="3.4" fill="#1F3FBF"/>
@@ -1097,9 +1039,12 @@ const FLAVORS = [
   { id:'vanilla', name:'바닐라 클라우드', nameEn:'Vanilla Cloud', desc:'부드럽고 진한 기본 바닐라', descEn:'Smooth and rich classic vanilla', color:'#F5E6C8', tubAccent:'#D6A94F', tubLabel:'VANILLA', price:3500, stock:82 },
   { id:'choco',   name:'더블 초코칩', nameEn:'Double Choco Chip', desc:'초코칩이 씹히는 진한 초코', descEn:'Rich chocolate with crunchy chips', color:'#6B4226', tubAccent:'#3E2518', tubLabel:'CHOCOLATE', price:3800, stock:47 },
   { id:'straw',   name:'스트로베리', nameEn:'Strawberry', desc:'생딸기 과육이 들어간 상큼함', descEn:'Fresh and fruity strawberry', color:'#F58AA8', tubAccent:'#F0328C', tubLabel:'STRAWBERRY', price:3800, stock:18 },
+  { id:'mint',    name:'민트초코', nameEn:'Mint Chocolate', desc:'상쾌한 민트와 초콜릿 칩', descEn:'Refreshing mint with chocolate chips', color:'#91D9C2', tubAccent:'#35A989', tubLabel:'MINT CHOCOLATE', price:3800, stock:54 },
+  { id:'cookie',  name:'쿠키앤크림', nameEn:'Cookies and Cream', desc:'바삭한 쿠키가 가득한 크림', descEn:'Creamy ice cream packed with cookies', color:'#D8D2C8', tubAccent:'#615B56', tubLabel:'COOKIES & CREAM', price:4000, stock:61 },
 ];
+const FLAVOR_STYLES = new Map(FLAVORS.map((flavor, index)=>[index + 1, { ...flavor }]));
 const BASES = [
-  { id:'cup',  name:'컵',   desc:'스푼을 함께 꽂아 드려요', price:0 },
+  { id:'cup',  name:'컵',   desc:'컵 아이스크림', price:0 },
   { id:'cone', name:'콘',   desc:'바삭한 슈가콘', price:500 },
 ];
 const TOPPINGS = [
@@ -1116,7 +1061,6 @@ const TASKS = [
   { code:'SCOOP_ICECREAM',       t:'아이스크림 퍼기', tEn:'Scoop ice cream', p:60 },
   { code:'PUT_ICECREAM_IN_CUP',  t:'컵에 아이스크림 담기', tEn:'Put ice cream in cup', p:75 },
   { code:'SCOOP_RETURN',         t:'스쿱 툴 내려놓기', tEn:'Return scoop tool', p:85 },
-  { code:'SPOON_INSERT',         t:'스푼 삽입', tEn:'Insert spoon', p:92 },
   { code:'SERVE_CUP',            t:'아이스크림 손님에게 전달', tEn:'Serve ice cream', p:100 },
 ];
 const POINTS = [
@@ -1124,7 +1068,6 @@ const POINTS = [
   ['P_TOOL',  '412.5','-118.0','245.8','0.0','180.0','0.0','스쿱 툴 거치대',false],
   ['P_SCOOP', '520.4','  38.2','188.6','0.0','143.3','0.0','통 진입 · 36.7° 기울기',false],
   ['P_POUR',  '388.1',' 205.6','318.3','0.0','180.0','0.0','컵 위 디스펜스 — 컵 위치 재확인 필요',true],
-  ['P_SPOON', '355.0',' 262.4','280.0','0.0','180.0','0.0','스푼 디스펜서',false],
   ['P_HANDOVER','300.0','340.0','360.0','0.0','170.0','0.0','손님 전달 지점',false],
 ];
 const NODES = [
@@ -1146,6 +1089,9 @@ let pin = '';
 let stockIce = { vanilla:82, choco:47, straw:18 };
 let stockSub = { cup:120, cone:64, spoon:38, napkin:210 };
 let makeTimer = null;
+let currentOrderId = null;
+let feedbackSocket = null;
+let creatingOrder = false;
 
 /* ============================================================
    유틸
@@ -1165,7 +1111,41 @@ function act(msg, icon){ toast(msg, icon); pushLog('OK', msg); }
 
 function total(){
   if(!sel.flavor) return 0;
-  return FLAVORS.find(x=>x.id===sel.flavor).price;
+  return FLAVORS.find(x=>x.id===sel.flavor)?.price || 0;
+}
+
+function updateTodayFlavors(){
+  const ids = ["todayVanilla", "todayChoco", "todayStraw"];
+  ids.forEach((id, index)=>{
+    const label = $("#"+id);
+    const flavor = FLAVORS[index];
+    label.textContent = flavor
+      ? (attractLanguage==="en" ? flavor.nameEn : flavor.name)
+      : "—";
+    label.closest(".fl").querySelector("i").style.background = flavor?.color || "#D9DCE8";
+  });
+}
+
+async function loadFlavors(){
+  try{
+    const response = await fetch("/flavors?available_only=true");
+    if(!response.ok) throw new Error("메뉴 조회 실패");
+    const rows = await response.json();
+    const loaded = rows.map((row, index)=>{
+      const style = FLAVOR_STYLES.get(row.id) || [...FLAVOR_STYLES.values()][index % FLAVOR_STYLES.size];
+      return { ...style, flavorId:row.id, name:row.name, nameEn:row.name_en || row.name, desc:row.description || "", descEn:row.description_en || row.description || "" };
+    });
+    FLAVORS.splice(0, FLAVORS.length, ...loaded);
+    updateTodayFlavors();
+    if(sel.flavor && !FLAVORS.some(flavor=>flavor.id===sel.flavor)) sel.flavor=null;
+    render();
+    return true;
+  }catch(error){
+    FLAVORS.splice(0); sel.flavor=null; render();
+    toast(attractLanguage==="en" ? "Unable to load the menu" : "메뉴를 불러오지 못했습니다", "⚠");
+    pushLog("ERR", "DB 메뉴 조회 실패 · "+error.message);
+    return false;
+  }
 }
 
 /* ============================================================
@@ -1185,9 +1165,7 @@ function applyLanguage(){
   $('#langToggle').textContent = en ? '한국어' : 'English';
   $('#startOrderBtn').textContent = en ? 'Touch to Start Order' : '화면을 눌러 주문 시작';
   $('#todayLabel').textContent = en ? "TODAY'S FLAVORS" : '오늘의 맛';
-  $('#todayVanilla').textContent = en ? 'Vanilla Cloud' : '바닐라 클라우드';
-  $('#todayChoco').textContent = en ? 'Double Choco Chip' : '더블 초코칩';
-  $('#todayStraw').textContent = en ? 'Strawberry' : '스트로베리';
+  updateTodayFlavors();
   $('#chipTxt').textContent = estop
     ? (en ? 'INSPECTION · ORDERS PAUSED' : '점검 중 · 주문 일시 중단')
     : (en ? 'OPEN · 0 teams waiting' : '정상 운영 중 · 대기 0팀');
@@ -1198,8 +1176,6 @@ function applyLanguage(){
   $('#confirmTitle').textContent = en ? 'Please confirm your flavor' : '선택한 맛을 확인해 주세요';
   $('#makeTitle').textContent = en ? 'Robot is preparing your order' : '로봇 제조 작업 진행 중';
   $('#orderNumberLabel').textContent = en ? 'Order' : '주문번호';
-  $('#remainingTimeLabel').textContent = en ? 'About' : '남은 시간 약';
-  $('#secondsLabel').textContent = en ? ' sec remaining' : '초';
   $('#doneTitle').textContent = en ? 'Your order is ready!' : '받아 가세요!';
   $('#doneHelp').innerHTML = en
     ? 'Your ice cream is ready.'
@@ -1228,13 +1204,13 @@ function show(i){
   updateBar();
 }
 
-function startOrder(){
+async function startOrder(){
   if(estop){ toast(attractLanguage === 'en' ? 'The robot is under inspection' : '로봇 점검 중이라 주문을 받을 수 없어요','⚠'); return; }
   sel = { flavor:null };
-  render();
+  await loadFlavors();
   show(1);
 }
-function goHome(){ clearInterval(makeTimer); show(0); }
+function goHome(){ clearInterval(makeTimer); if(feedbackSocket) feedbackSocket.close(); currentOrderId=null; show(0); }
 function prevStep(){ if(step>1) show(step-1); else show(0); }
 function nextStep(){
   if(step===2){ beginMaking(); return; }
@@ -1288,70 +1264,174 @@ function render(){
   // 확인
   const f = sel.flavor && FLAVORS.find(x=>x.id===sel.flavor);
   $('#recList').innerHTML = `
-    <div class="recrow"><span class="k">${en?'FLAVOR':'맛'}</span><span class="v">${f?(en?f.nameEn:f.name):'—'}</span><span class="p">${f?won(f.price):''}</span></div>`;
+    <div class="recrow" style="--flavor-color:${f?f.color:'#F0328C'}">
+      <span class="k">${en?'YOUR FLAVOR':'선택한 메뉴'}</span>
+      <span class="flavor-dot"></span>
+      <span class="v">${f?(en?f.nameEn:f.name):'—'}</span>
+      <span class="d">${f?(en?f.descEn:f.desc):''}</span>
+      <span class="price-line"></span>
+      <span class="price-label">${en?'PRICE':'가격'}</span>
+      <span class="p">${f?won(f.price):''}</span>
+    </div>`;
+  updateConfirmArtwork(f);
 
   updateBar();
 }
 
 function pickFlavor(id){ sel.flavor = id; render(); }
 
+function updateConfirmArtwork(flavor){
+  if(!flavor) return;
+  ['cupScoopMain','cupScoopLeft','cupScoopRight'].forEach(id=>$('#'+id).setAttribute('fill', flavor.color));
+  $('#cupScoopLeft').setAttribute('opacity', '.86');
+  $('#cupScoopRight').setAttribute('opacity', '.72');
+  $('#visualNote').style.setProperty('--flavor-color', flavor.color);
+  $('#visualNote span').textContent = attractLanguage==='en' ? 'ROBOT SCOOPED' : '로봇 스쿱 완료';
+}
+
 function updateFlavorArtwork(){
   const flavor = FLAVORS.find(x=>x.id===sel.flavor);
   if(!flavor) return;
   $('#icecreamTubFill').setAttribute('fill', flavor.color);
   $('#icecreamTubLid').setAttribute('fill', flavor.tubAccent);
-  $('#icecreamTubLabel').textContent = flavor.tubLabel;
+  $('#icecreamTubLabel').textContent = flavor.name;
 }
 
 /* ============================================================
    제조 진행
    ============================================================ */
-function beginMaking(){
-  orderNo++;
-  const no = 'A-' + String(orderNo).padStart(3,'0');
-  updateFlavorArtwork();
-  $('#makeNo').textContent = no;
-  $('#doneNo').textContent = no;
-  $('#taskList').innerHTML = TASKS.map((t,i)=>`
-    <div class="task" data-i="${i}" data-step="${t.code}">
-      <div class="tn"><span>${i+1}</span></div>
-      <div><div class="tt">${attractLanguage==='en' ? t.tEn : t.t}</div><div class="ts">${t.code} · ${t.p}%</div></div>
-    </div>`).join('');
-  show(3);
-  pushLog('INFO', `주문 ${no} 접수 · ${FLAVORS.find(x=>x.id===sel.flavor).name}`);
+async function beginMaking(){
+  if(creatingOrder || !sel.flavor) return;
+  const flavor = FLAVORS.find(item=>item.id===sel.flavor);
+  if(!flavor) return;
+  creatingOrder=true; document.querySelector("#nextBtn").disabled=true;
+  try{
+    const response = await fetch("/orders", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({flavor_id:flavor.flavorId})});
+    const order = await response.json();
+    if(!response.ok) throw new Error(order.detail || "주문 생성 실패");
+    currentOrderId=order.id; orderNo=order.id;
+    const no="A-" + String(order.id).padStart(3,"0");
+    updateFlavorArtwork();
+    document.querySelector("#makeNo").textContent=no; document.querySelector("#doneNo").textContent=no;
+    document.querySelector("#taskList").innerHTML=TASKS.map((task,index)=>
+      "<div class=\"task\" data-i=\""+index+"\" data-step=\""+task.code+"\"><div class=\"tn\"><span>"+(index+1)+"</span></div><div><div class=\"tt\">"+(attractLanguage==="en" ? task.tEn : task.t)+"</div><div class=\"ts\">"+task.code+" · "+task.p+"%</div></div></div>"
+    ).join("");
+    show(3); applyFeedback({order_id:order.id,status:order.status,step:"",progress:5,message:"로봇 배정 대기 중"});
+    connectOrderSocket(order.id);
+    pushLog("INFO", "주문 "+no+" DB 접수 · "+flavor.name);
+  }catch(error){
+    toast(error.message || "주문을 접수하지 못했습니다", "⚠");
+    pushLog("ERR", "DB 주문 생성 실패 · "+error.message);
+  }finally{ creatingOrder=false; updateBar(); }
+}
 
-  let i = 0, eta = 88;
-  const marks = $$('#taskList .task');
-  const stepMs = 2200;
-  const advance = ()=>{
-    if(i>0){
-      marks[i-1].classList.replace('now','ok');
-      pushLog('OK', `주문 ${no} · ${TASKS[i-1].code} COMPLETED · ${TASKS[i-1].p}%`);
-    }
-    if(i>=TASKS.length){
-      clearInterval(makeTimer);
-      $('#makeBar').style.width = '100%';
-      setTimeout(()=>{ show(4); pushLog('OK', `주문 ${no} 제조 완료`); }, 700);
-      return;
-    }
-    marks[i].classList.add('now');
-    $('#makeBar').style.width = TASKS[i].p + '%';
-    $('#vAct').textContent = TASKS[i].code;
-    pushLog('INFO', `주문 ${no} · ${TASKS[i].code} STARTED · ${TASKS[i].p}%`);
-    i++;
-  };
-  advance();
-  makeTimer = setInterval(()=>{
-    eta = Math.max(0, eta - Math.round(stepMs/1000*4));
-    $('#makeEta').textContent = eta;
-    advance();
-  }, stepMs);
+function connectOrderSocket(orderId){
+  if(feedbackSocket) feedbackSocket.close();
+  const protocol=location.protocol==="https:" ? "wss:" : "ws:";
+  feedbackSocket=new WebSocket(protocol+"//"+location.host+"/ws/orders/"+orderId);
+  feedbackSocket.onmessage=event=>applyFeedback(JSON.parse(event.data));
+  feedbackSocket.onerror=()=>pushLog("WARN", "실시간 피드백 연결 확인 중");
+}
+
+function applyFeedback(feedback){
+  if(feedback.order_id!==currentOrderId) return;
+  const progress=Math.max(0,Math.min(100,Number(feedback.progress)||0));
+  document.querySelector("#makeBar").style.width=progress+"%";
+  document.querySelector("#vAct").textContent=feedback.step || feedback.status;
+  const activeIndex=TASKS.findIndex(task=>task.code===feedback.step);
+  document.querySelectorAll("#taskList .task").forEach((mark,index)=>{
+    mark.classList.toggle("ok", activeIndex>=0 && index<activeIndex);
+    mark.classList.toggle("now", index===activeIndex);
+  });
+  if(feedback.message) pushLog("INFO", "주문 #"+feedback.order_id+" · "+feedback.message);
+  if(feedback.status==="COMPLETED"){
+    document.querySelectorAll("#taskList .task").forEach(mark=>{mark.classList.remove("now"); mark.classList.add("ok");});
+    document.querySelector("#makeBar").style.width="100%"; currentOrderId=null;
+    if(feedbackSocket) feedbackSocket.close();
+    setTimeout(()=>show(4),700);
+  }else if(feedback.status==="FAILED"){
+    currentOrderId=null; if(feedbackSocket) feedbackSocket.close(); show(2);
+    toast(feedback.message || "제조에 실패했습니다. 직원을 불러 주세요.", "⚠");
+  }
 }
 
 /* ============================================================
    관리자
    ============================================================ */
+let adminFlavorCatalog = [];
+let selectedFlavorIds = new Set();
+
+async function loadAdminFlavors(){
+  const list = $('#flavorAdminList');
+  if(!list) return;
+  list.innerHTML = '<div class="flavor-admin-current">맛 정보를 불러오는 중입니다.</div>';
+  try{
+    const response = await fetch('/flavors');
+    if(!response.ok) throw new Error('맛 목록 조회 실패');
+    adminFlavorCatalog = await response.json();
+    selectedFlavorIds = new Set(
+      adminFlavorCatalog.filter(flavor=>flavor.is_available).map(flavor=>flavor.id)
+    );
+    renderAdminFlavorSelection();
+  }catch(error){
+    list.innerHTML = `<div class="flavor-admin-current">${error.message}</div>`;
+  }
+}
+
+function renderAdminFlavorSelection(){
+  const selectedNames = adminFlavorCatalog
+    .filter(flavor=>selectedFlavorIds.has(flavor.id))
+    .map(flavor=>flavor.name);
+  $('#adminSelectedFlavor').textContent = selectedNames.length ? selectedNames.join(' · ') : '없음';
+  $('#flavorAdminList').innerHTML = adminFlavorCatalog.map(flavor=>{
+    const selected = selectedFlavorIds.has(flavor.id);
+    return `<button class="flavor-edit-row ${selected?'selected':''}" type="button" onclick="toggleAdminFlavor(${flavor.id})">
+      <span class="flavor-id">#${flavor.id}</span>
+      <span class="flavor-copy"><strong>${flavor.name}</strong><span>${flavor.description}</span></span>
+      <span class="flavor-copy"><strong>${flavor.name_en}</strong><span>${flavor.description_en}</span></span>
+      <span class="selection-state">${selected?'✓ 선택됨':'선택'}</span>
+    </button>`;
+  }).join('');
+  const saveButton = $('#saveFlavorSelection');
+  saveButton.disabled = selectedFlavorIds.size!==3;
+  saveButton.textContent = selectedFlavorIds.size===3
+    ? '선택한 3개 맛 저장'
+    : `${selectedFlavorIds.size}/3 선택됨`;
+}
+
+function toggleAdminFlavor(flavorId){
+  if(selectedFlavorIds.has(flavorId)) selectedFlavorIds.delete(flavorId);
+  else if(selectedFlavorIds.size>=3){
+    toast('기존 맛 하나를 먼저 해제해 주세요', '⚠');
+    return;
+  }else selectedFlavorIds.add(flavorId);
+  renderAdminFlavorSelection();
+}
+
+async function saveAdminFlavorSelection(){
+  if(selectedFlavorIds.size!==3) return;
+  const button = $('#saveFlavorSelection');
+  button.disabled=true; button.textContent='저장 중';
+  try{
+    const response = await fetch('/flavors/selection', {
+      method:'PUT', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({flavor_ids:[...selectedFlavorIds]}),
+    });
+    const body = await response.json();
+    if(!response.ok) throw new Error(body.detail || '저장 실패');
+    await loadFlavors();
+    await loadAdminFlavors();
+    toast('키오스크 메뉴 맛 3개를 변경했습니다');
+    pushLog('OK', '키오스크 메뉴 변경 · '+body.map(flavor=>flavor.name).join(', '));
+  }catch(error){
+    toast(error.message, '⚠');
+    renderAdminFlavorSelection();
+  }
+}
+
+
 function openAdmin(){
+  loadAdminFlavors();
   $('#admin').classList.add('on');
   if(!unlocked){ $('#pinpad').style.display='flex'; pin=''; drawPin(); }
 }
@@ -1382,22 +1462,15 @@ function drawPin(){
   $$('#pinDots i').forEach((d,i)=> d.classList.toggle('f', i<pin.length));
 }
 
-$('#aTabs').addEventListener('click', e=>{
-  const t = e.target.closest('.atab'); if(!t) return;
-  $$('.atab').forEach(x=>x.classList.toggle('on', x===t));
-  $$('.apane').forEach(p=>p.classList.toggle('on', p.id===t.dataset.p));
-});
-
 function toggleEstop(){
   estop = !estop;
   $('#estopBanner').classList.toggle('on', estop);
   $('#estopBtn').classList.toggle('rel', estop);
-  $('#estopLabel').textContent = estop ? '비상 정지 해제' : '비상 정지';
-  $('#estopNote').textContent = estop
-    ? '서보 전원이 꺼졌습니다. 위험 요소를 제거한 뒤 해제하세요.'
-    : '누르면 즉시 서보 전원이 차단되고 키오스크 주문이 잠깁니다.';
+  $('#estopLabel').textContent = estop ? '긴급정지 해제' : '긴급정지';
   $('#vServo').textContent = estop ? 'OFF' : 'ON';
-  $('#vServo').className = 'dv ' + (estop ? 'bad' : 'ok');
+  $('#vServo').className = estop ? 'state-stop' : 'state-ready';
+  $('#adminRobotState').textContent = estop ? '● E-STOP' : '● READY';
+  $('#adminRobotState').className = estop ? 'state-stop' : 'state-ready';
   $('#chipDot').className = 'dot ' + (estop ? 'warn' : 'pulse');
   $('#chipTxt').textContent = estop
     ? (attractLanguage==='en' ? 'INSPECTION · ORDERS PAUSED' : '점검 중 · 주문 일시 중단')
@@ -1407,45 +1480,63 @@ function toggleEstop(){
   toast(estop ? '비상 정지되었습니다' : '비상 정지를 해제했습니다', estop?'⏹':'▶');
 }
 
-/* 상태 패널 라이브 값 */
-const JOINTS = [0, 0, 90, 0, 90, 0];
-$('#jointRows').innerHTML = JOINTS.map((v,i)=>`
-  <div class="drow">
-    <span class="dk">J${i+1}</span>
-    <span class="jbar"><i style="left:50%;width:0"></i></span>
-    <span class="dv" id="j${i}">${v.toFixed(1)}</span>
+let JOINTS = [0, 0, 90, 0, 90, 0];
+$('#jointControlGrid').innerHTML = JOINTS.map((v,i)=>`
+  <div class="joint-control">
+    <label for="jointNumber${i}">J${i+1}</label>
+    <input type="number" id="jointNumber${i}" min="-180" max="180" value="${v}" onchange="setJoint(${i}, this.value)">
+    <input type="range" id="jointRange${i}" min="-180" max="180" value="${v}" oninput="syncJoint(${i}, this.value)">
+    <div class="joint-scale"><span>-180</span><span>0</span><span>180</span></div>
   </div>`).join('');
-$('#tcpRows').innerHTML = `
-  <div class="drow"><span class="dk">X</span><span class="dv" id="tx">412.5</span></div>
-  <div class="drow"><span class="dk">Y</span><span class="dv" id="ty">-118.0</span></div>
-  <div class="drow"><span class="dk">Z</span><span class="dv" id="tz">318.3</span></div>
-  <div class="drow"><span class="dk">Fx</span><span class="dv hi" id="fx">-0.4</span></div>
-  <div class="drow"><span class="dk">Fy</span><span class="dv" id="fy">0.2</span></div>
-  <div class="drow"><span class="dk">Fz</span><span class="dv" id="fz">-1.1</span></div>
-  <div class="drow"><span class="dk">속도</span><span class="dv">30 % (60 mm/s)</span></div>`;
-$('#nodeList').innerHTML = NODES.map(([n,hz,st])=>`
-  <div class="node"><i class="nd ${st==='ok'?'':st}"></i><span class="nn">${n}</span><span class="nhz">${hz}</span></div>`).join('');
+
+async function waitRobotAdminCommand(commandId){
+  for(let count=0; count<240; count++){
+    await new Promise(resolve=>setTimeout(resolve,500));
+    const response=await fetch(`/robot/admin/commands/${commandId}`);
+    if(!response.ok) throw new Error('명령 상태 조회 실패');
+    const result=await response.json();
+    if(result.status==='SUCCEEDED') return result;
+    if(result.status==='FAILED') throw new Error(result.message || '로봇 명령 실패');
+  }
+  throw new Error('로봇 명령 응답 시간이 초과되었습니다.');
+}
+async function sendRobotAdminCommand(command,jointPositions=null){
+  const buttons = $$(".admin-command-btn");
+  buttons.forEach(button=>button.disabled=true);
+  $('#vAct').textContent='COMMAND · '+command;
+  pushLog('INFO',`${command} 관리자 명령 전송`);
+  try{
+    const response=await fetch('/robot/admin/commands',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({command,joint_positions:jointPositions})
+    });
+    const created=await response.json();
+    if(!response.ok) throw new Error(created.detail || '명령 생성 실패');
+    const result=await waitRobotAdminCommand(created.id);
+    $('#vAct').textContent=command==='START'?'RUNNING':'IDLE';
+    act(result.message || `${command} 명령 완료`,'✓');
+  }catch(error){
+    $('#vAct').textContent='ERROR';
+    pushLog('ERR',error.message); toast(error.message,'⚠');
+  }finally{
+    buttons.forEach(button=>button.disabled=false);
+  }
+}
+function robotControl(command){ sendRobotAdminCommand(command); }
+function movePosition(point){ sendRobotAdminCommand(point); }
+function gripperControl(mode){ sendRobotAdminCommand('GRIPPER_'+mode); }
+function syncJoint(i,value){
+  const v = Math.max(-180,Math.min(180,Number(value)||0));
+  JOINTS[i]=v; $('#jointNumber'+i).value=v;
+}
+function setJoint(i,value){
+  const v = Math.max(-180,Math.min(180,Number(value)||0));
+  JOINTS[i]=v; $('#jointNumber'+i).value=v; $('#jointRange'+i).value=v;
+}
+function moveJoints(){ sendRobotAdminCommand('MOVE_JOINTS',[...JOINTS]); }
 
 setInterval(()=>{
   if(!$('#admin').classList.contains('on')) return;
-  const live = step===3 && !estop;
-  JOINTS.forEach((base,i)=>{
-    const jitter = live ? (Math.random()-.5)*14 : (Math.random()-.5)*0.3;
-    const v = base + jitter;
-    $('#j'+i).textContent = v.toFixed(1);
-    const bar = $$('#jointRows .jbar i')[i];
-    const pct = Math.max(-50, Math.min(50, v/3.6));
-    bar.style.left = (50 + Math.min(0,pct)) + '%';
-    bar.style.width = Math.abs(pct) + '%';
-  });
-  const fxv = live ? -(Math.random()*9+1) : -(Math.random()*0.7);
-  $('#fx').textContent = fxv.toFixed(1);
-  $('#fx').className = 'dv ' + (fxv < -6 ? 'warn' : 'hi');
-  $('#fy').textContent = ((Math.random()-.5)*2).toFixed(1);
-  $('#fz').textContent = (-1 + (Math.random()-.5)*2).toFixed(1);
-  $('#tz').textContent = (318.3 + (live?(Math.random()-.5)*60:0)).toFixed(1);
-  $('#vComp').textContent = live ? 'ON (X 400)' : 'OFF';
-  $('#vComp').className = 'dv ' + (live ? 'ok' : 'warn');
   $('#hmiClock').textContent = new Date().toTimeString().slice(0,8);
 }, 700);
 
@@ -1456,88 +1547,6 @@ setInterval(()=>{
   $('#liveJ').textContent = 'J5 ' + (90 + (Math.random()-.5)*60).toFixed(1) + '°';
   $('#liveTcp').textContent = 'Z ' + (318.3 + (Math.random()-.5)*50).toFixed(1) + ' mm';
 }, 600);
-
-/* 재고 */
-function stockRow(name, val, max, unit){
-  const p = Math.round(val/max*100);
-  const cls = p<20?'low':(p<45?'mid':'');
-  return `<div class="stock">
-    <div class="sh"><span class="sn">${name}</span><span class="sv">${val} / ${max} ${unit} · ${p}%</span></div>
-    <div class="sg"><i class="${cls}" style="width:${p}%"></i></div>
-  </div>`;
-}
-function renderStock(){
-  $('#stockIce').innerHTML =
-    stockRow('바닐라 클라우드', stockIce.vanilla, 100, '스쿱') +
-    stockRow('더블 초코칩',   stockIce.choco,   100, '스쿱') +
-    stockRow('스트로베리',     stockIce.straw,   100, '스쿱');
-  $('#stockSub').innerHTML =
-    stockRow('컵',     stockSub.cup,    150, '개') +
-    stockRow('슈가콘', stockSub.cone,   100, '개') +
-    stockRow('스푼',   stockSub.spoon,  150, '개') +
-    stockRow('냅킨',   stockSub.napkin, 300, '장');
-  $('#soldoutBtns').innerHTML = FLAVORS.map(f=>`
-    <button class="abtn ${stockIce[f.id]<=0?'danger':''}" onclick="toggleSoldout('${f.id}')">
-      <span class="at">${f.name}</span>
-      <span class="ad">${stockIce[f.id]<=0 ? '품절 표시 중 · 눌러서 판매 재개' : '판매 중 · 눌러서 품절 처리'}</span>
-    </button>`).join('');
-}
-function toggleSoldout(id){
-  const wasOut = stockIce[id] <= 0;
-  stockIce[id] = wasOut ? 60 : 0;
-  renderStock(); render();
-  const n = FLAVORS.find(f=>f.id===id).name;
-  act(wasOut ? `${n} 판매를 재개했습니다` : `${n}을(를) 품절 처리했습니다`, wasOut?'✓':'✕');
-}
-function refillAll(){
-  stockIce = { vanilla:100, choco:100, straw:100 };
-  stockSub = { cup:150, cone:100, spoon:150, napkin:300 };
-  renderStock(); render();
-  act('모든 재고를 가득 참으로 표시했습니다','✓');
-}
-
-/* 좌표 */
-$('#coordBody').innerHTML = POINTS.map(p=>`
-  <tr class="${p[8]?'flag':''}">
-    <td class="pname">${p[0]}</td>
-    <td>${p[1]}</td><td>${p[2]}</td><td>${p[3]}</td>
-    <td>${p[4]}</td><td>${p[5]}</td><td>${p[6]}</td>
-    <td style="font-family:var(--font-ui); font-size:12px; color:${p[8]?'var(--hmi-amber)':'var(--hmi-dim)'}">${p[8]?'⚠ ':''}${p[7]}</td>
-    <td><button class="teach" onclick="act('${p[0]} 좌표를 현재 자세로 저장했습니다','✓')">현재 위치로 저장</button></td>
-  </tr>`).join('');
-
-/* 업데이트 */
-const UPDATES = [
-  { n:'모션 제어 노드', v:'v1.4.2 → v1.5.0', d:'스쿱 접촉 판정 안정화 · 재시도 로직 개선', icon:'🦾', ready:true },
-  { n:'키오스크 화면',   v:'v0.9.2 → v0.9.5', d:'토핑 화면 응답 속도 개선', icon:'🖥', ready:true },
-  { n:'로봇 펌웨어',     v:'GV02120100 (v2.12.1)', d:'최신 버전입니다', icon:'⚙', ready:false },
-  { n:'메뉴 · 가격표',   v:'2026-08-25 동기화됨', d:'최신 상태입니다', icon:'📋', ready:false },
-];
-$('#updList').innerHTML = UPDATES.map((u,i)=>`
-  <div class="upd">
-    <div class="ui">${u.icon}</div>
-    <div><div class="un">${u.n}</div><div class="uv">${u.v} · ${u.d}</div></div>
-    <button class="ub ${u.ready?'':'done'}" ${u.ready?'':'disabled'} onclick="runUpdate(${i}, this)">
-      ${u.ready?'지금 설치':'최신'}</button>
-  </div>`).join('');
-
-function runUpdate(i, btn){
-  const bar = $('#updBar'), fill = bar.querySelector('i');
-  bar.classList.add('on'); fill.style.width='0%';
-  btn.disabled = true; btn.textContent='설치 중…';
-  pushLog('INFO', `${UPDATES[i].n} 업데이트 시작`);
-  let p = 0;
-  const t = setInterval(()=>{
-    p += Math.random()*14 + 5;
-    fill.style.width = Math.min(100,p) + '%';
-    if(p>=100){
-      clearInterval(t);
-      btn.textContent='최신'; btn.classList.add('done');
-      setTimeout(()=>bar.classList.remove('on'), 600);
-      act(`${UPDATES[i].n} 업데이트를 마쳤습니다`, '✓');
-    }
-  }, 260);
-}
 
 /* 로그 */
 const LOGS = [
@@ -1582,8 +1591,33 @@ $('#s-attract').addEventListener('click', e=>{
   draw(); addEventListener('resize', draw);
 })();
 
+async function refreshRobotState(){
+  try{
+    const response = await fetch("/robot/state");
+    if(!response.ok) return;
+    const state = await response.json();
+    const labels = {IDLE:"READY",READY:"READY",PROCESSING:"RUNNING",RETURNING_HOME:"RETURN HOME",ERROR:"ERROR",STOPPED:"STOPPED"};
+    const ready = state.status==="IDLE" || state.status==="READY";
+    const failed = state.status==="ERROR" || state.status==="STOPPED";
+    $("#adminRosState").textContent = "● CONNECTED";
+    $("#adminRosState").className = "state-ready";
+    $("#adminRobotState").textContent = "● " + (labels[state.status] || state.status);
+    $("#adminRobotState").className = failed ? "state-stop" : "state-ready";
+    $("#vAct").textContent = state.current_step || labels[state.status] || state.status;
+    if(!estop){
+      $("#chipDot").className = "dot " + (failed ? "warn" : "pulse");
+      $("#chipTxt").textContent = failed ? "로봇 확인 필요 · 주문 중단" : ready ? "정상 운영 중 · 주문 가능" : state.message;
+    }
+  }catch(_error){
+    $("#adminRosState").textContent = "● DISCONNECTED";
+    $("#adminRosState").className = "state-stop";
+  }
+}
+setInterval(refreshRobotState, 2000);
+
 /* 초기화 */
-render(); renderStock(); renderLogs(); show(0);
+render(); renderLogs(); show(0); loadFlavors(); refreshRobotState();
+if(location.hash==="#admin") openAdmin();
 
 /* 데모 단축키 */
 addEventListener('keydown', e=>{

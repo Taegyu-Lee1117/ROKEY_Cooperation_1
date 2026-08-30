@@ -30,7 +30,7 @@ from .models import (
 app = FastAPI(title="Robot Ice Cream API", version="1.0.0")
 app.include_router(robot_state_router)
 Db = Annotated[psycopg.Connection, Depends(get_connection)]
-KIOSK_HTML = Path(__file__).resolve().parents[2] / "ui_preview" / "roskin_robbins_v5.html"
+KIOSK_HTML = Path(__file__).resolve().parents[2] / "frontend" / "roskin_robbins_v5.html"
 
 
 

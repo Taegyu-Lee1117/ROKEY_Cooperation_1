@@ -1,6 +1,10 @@
 # ROS 2 기반 아이스크림 제조 자동화 시스템
 
-두산 협동로봇 **M0609**가 컵을 공급하고, 스쿱으로 아이스크림을 담은 뒤 완성된 컵을 제공하는 자동화 프로젝트입니다. 웹 키오스크에서 주문을 접수하고 FastAPI·PostgreSQL을 통해 주문 상태를 관리하며, ROS 2 Action과 Service를 이용해 실제 로봇 동작과 관리자 명령을 처리합니다.
+두산 협동로봇 **M0609**가 컵을 공급하고, 스쿱으로 아이스크림을 담은 뒤 완성된 컵을 제공하는 자동화 프로젝트입니다. 
+
+웹 키오스크에서 주문을 접수하고 FastAPI·PostgreSQL을 통해 주문 상태를 관리하며, ROS 2 Action과 Service를 이용해 실제 로봇 동작과 관리자 명령을 처리합니다.
+
+상세 아키텍처, 인터페이스, 제어 로직, 안전 설계는 [기술문서](DOCUMENT.md)를 참고 부탁드립니다.
 
 ---
 
@@ -8,9 +12,10 @@
 
 ### 시스템 구성
 
-- **웹 UI**
+- **웹 UI** (`frontend/roskin_robbins_v5.html`)
   - 키오스크: 맛 선택 및 주문 접수
   - 관리자 화면: 로봇 상태 확인, 공정 제어 및 수동 명령 전송
+  - FastAPI가 단일 HTML 파일을 제공
 - **FastAPI 백엔드** (`backend/app`)
   - 웹 페이지와 REST API 제공
   - 주문, 오류, 로봇 상태 및 관리자 명령 관리
@@ -27,6 +32,10 @@
 - **Doosan ROS 2 드라이버** (`dsr_bringup2`, `dsr_controller2`)
   - 실제 M0609 로봇 연결
   - 로봇 상태, 모션, 디지털 I/O 및 힘 제어 기능 제공
+
+### 시스템 아키텍처
+
+![시스템 아키텍처](system_architecture.png)
 
 ### ROS 2 인터페이스
 
@@ -49,7 +58,7 @@
 
 ### 플로우차트
 
-![alt text](docs/flow_chart.png)
+![시스템 플로우차트](flow_chart.png)
 
 ---
 
@@ -95,7 +104,9 @@
 
 ## 4) 의존성
 
-### Python 패키지 (`backend/requirements.txt`)
+이 문서에서 `<workspace>`는 제출받은 `src` 폴더를 넣은 ROS 2 워크스페이스, `<doosan_ws>`는 `doosan-robot2`를 빌드한 워크스페이스를 의미합니다.
+
+### Python 패키지 (`src/backend/requirements.txt`)
 
 ```txt
 fastapi>=0.115,<1.0
@@ -106,10 +117,20 @@ psycopg[binary]>=3.2,<4.0
 설치 방법:
 
 ```bash
-cd /home/dexy/ws_cobot_pjt/icecream_pj/backend
+cd <workspace>/src/backend
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
+```
+
+### PostgreSQL 초기화
+
+PostgreSQL 사용자와 `icecream_db` 데이터베이스를 준비한 후 스키마를 적용합니다. 아래 접속 정보는 프로젝트 기본 예시이며 운영 환경에서는 변경합니다.
+
+```bash
+cd <workspace>/src/backend
+export DATABASE_URL='postgresql://icecream:icecream@127.0.0.1:5432/icecream_db'
+PGPASSWORD=icecream psql -h 127.0.0.1 -U icecream -d icecream_db -f schema.sql
 ```
 
 ### ROS 2 패키지
@@ -129,7 +150,7 @@ pip install -r requirements.txt
 두산 ROS 2 패키지는 아래 워크스페이스에 빌드되어 있다고 가정합니다.
 
 ```text
-/home/dexy/ws_cobot_pjt/ws_dsr
+<doosan_ws>
 ```
 
 ---
@@ -139,10 +160,10 @@ pip install -r requirements.txt
 ### 최초 실행 또는 ROS 코드 변경 후 빌드
 
 ```bash
-cd /home/dexy/ws_cobot_pjt/icecream_pj
+cd <workspace>
 
 source /opt/ros/jazzy/setup.bash
-source /home/dexy/ws_cobot_pjt/ws_dsr/install/setup.bash
+source <doosan_ws>/install/setup.bash
 
 colcon build \
   --packages-select icecream_interfaces icecream_pj \
@@ -169,7 +190,7 @@ colcon build --packages-select icecream_pj --symlink-install
 ```bash
 sudo systemctl start postgresql
 
-cd /home/dexy/ws_cobot_pjt/icecream_pj/backend
+cd <workspace>/src/backend
 source .venv/bin/activate
 export DATABASE_URL='postgresql://icecream:icecream@127.0.0.1:5432/icecream_db'
 
@@ -186,45 +207,47 @@ Uvicorn running on http://0.0.0.0:8000
 #### 터미널 2 — 실제 로봇 및 주요 ROS 2 코드
 
 ```bash
-cd /home/dexy/ws_cobot_pjt/icecream_pj
+cd <workspace>
 
 export ROS_DOMAIN_ID=30
 source /opt/ros/jazzy/setup.bash
-source /home/dexy/ws_cobot_pjt/ws_dsr/install/setup.bash
+source <doosan_ws>/install/setup.bash
 source install/setup.bash
 
 ros2 launch icecream_pj icecream_system.launch.py
 ```
 
-`icecream_system.launch.py`는 다음 ROS 구성만 실행합니다.
+`src/icecream_pj/launch/icecream_system.launch.py`의 실행 순서는 다음과 같습니다.
 
-1. Doosan M0609 bringup 및 RViz
-2. `make_icecream_server`
-3. `order_bridge`
+1. Doosan M0609 bringup 및 RViz 실행
+2. 8초 후 `make_icecream_server` 실행
+3. 10초 후 `order_bridge` 실행
+
+통합 launch 대신 노드를 개별 점검할 때는 각 터미널에서 환경을 source한 후 다음 명령을 순서대로 실행할 수 있습니다.
+
+```bash
+ros2 launch dsr_bringup2 dsr_bringup2_rviz.launch.py \
+  mode:=real host:=192.168.1.100 port:=12345 model:=m0609 name:=dsr01
+
+ros2 run icecream_pj make_icecream_server
+ros2 run icecream_pj order_bridge --ros-args -p api_url:=http://127.0.0.1:8000
+```
 
 ROS launch 파일은 FastAPI나 PostgreSQL을 실행하지 않습니다. 터미널 1을 먼저 실행한 후 터미널 2를 실행하며, 두 터미널은 종료하지 않고 유지합니다.
 
-### 통합 실행 스크립트(선택)
-
-터미널 하나에서 FastAPI와 ROS 2 시스템을 함께 실행할 때만 사용합니다.
-
-```bash
-sudo systemctl start postgresql
-
-cd /home/dexy/ws_cobot_pjt/icecream_pj
-./run_system.sh
-```
-
-`run_system.sh`는 PostgreSQL이 실행 중인지 확인하고 FastAPI를 백그라운드로 실행한 다음 `icecream_system.launch.py`를 실행합니다. 기본 터미널 2개 방식과 동시에 실행하면 서버와 ROS 노드가 중복될 수 있으므로 두 방식 중 하나만 사용합니다.
-
 ### 웹 링크
+
+사용자·관리자 화면:
 
 - 키오스크: <http://127.0.0.1:8000/kiosk>
 - 관리자 화면: <http://127.0.0.1:8000/admin>
+- 관리자 PIN: `1234`
+
+개발·점검용 주소:
+
 - 데이터베이스 조회 화면: <http://127.0.0.1:8000/database>
 - API 문서: <http://127.0.0.1:8000/docs>
 - 상태 확인 API: <http://127.0.0.1:8000/health>
-- 관리자 PIN: `1234`
 
 ### 종료 순서
 
@@ -237,22 +260,29 @@ sudo systemctl stop postgresql
 ```
 ---
 
-## 6) 프로젝트 주요 디렉터리
+## 6) 제출 디렉터리 구조
 
 ```text
-icecream_pj/
+src/
+├── README.md                    # 프로젝트 안내
+├── DOCUMENT.md                  # 시스템 구조와 구현 상세 기술문서
+├── system_architecture.png       # 시스템 구성도
+├── flow_chart.png               # 시스템 플로우차트
 ├── backend/
-│   ├── app/                    # FastAPI API 및 웹 서버
-│   ├── static/                 # 키오스크·관리자 정적 파일
-│   ├── requirements.txt        # Python 의존성
-│   └── schema.sql              # PostgreSQL 스키마
-├── src/
-│   ├── icecream_interfaces/    # MakeIcecream Action, AdminCommand Service
-│   └── icecream_pj/
-│       ├── icecream_pj/        # 제조 서버, 브리지, 로봇 모션 코드
-│       └── launch/             # ROS 2 launch 파일
-├── run_system.sh               # FastAPI + ROS 통합 실행 스크립트
-└── 2.Readme.md
+│   ├── app/                     # FastAPI API 및 웹 서버
+│   ├── migrations/              # 데이터베이스 변경 이력
+│   ├── requirements.txt         # Python 의존성
+│   └── schema.sql               # PostgreSQL 전체 스키마
+├── frontend/
+│   └── roskin_robbins_v5.html   # 키오스크 및 관리자 UI
+├── icecream_interfaces/         # Action 및 Service 인터페이스
+└── icecream_pj/                 # ROS 2 Python 패키지
+    ├── icecream_pj/             # 제조 서버, 브리지, 모션 코드
+    ├── launch/                  # 통합 launch 파일
+    ├── resource/                # ament 패키지 인덱스 마커
+    ├── package.xml
+    ├── setup.cfg
+    └── setup.py
 ```
 
 ---
