@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Roskin Robbins</title>
+  <style>
+    :root { color-scheme: light; font-family: Arial, sans-serif; scrollbar-gutter: stable; }
+    html { overflow-y: scroll; }
+    * { box-sizing: border-box; }
+    body { display: flex; flex-direction: column; margin: 0; min-height: 100vh; overflow-x: hidden; background: #fff7f2; color: #352b2b; }
+    header { position: relative; display: flex; min-height: 15vh; flex-direction: column; align-items: center; justify-content: center; padding: 24px; text-align: center; background: white; color: #342664; border-bottom: 8px solid #ff5d9e; }
+    .admin-link { position: absolute; top: 24px; right: 32px; display: inline-flex; width: 150px; height: 48px; align-items: center; justify-content: center; padding: 0; border: 2px solid #342664; border-radius: 14px; color: #342664; background: white; font: 700 17px Arial, sans-serif; line-height: 1; text-decoration: none; }
+    .admin-link:hover { color: white; background: #342664; }
+    header h1 { margin: 0 0 10px; font-size: clamp(42px, 4.2vw, 72px); }
+    .brand-ros { color: #ff4f9a; }
+    .brand-robbins { color: #342664; }
+    header div { font-size: clamp(18px, 1.5vw, 28px); }
+    main { display: flex; width: min(1500px, 92vw); flex: 1; flex-direction: column; justify-content: center; margin: auto; padding: clamp(24px, 4vh, 52px) 0; }
+    .status { display: flex; min-height: clamp(70px, 9vh, 96px); align-items: center; justify-content: space-between; gap: 16px; padding: 18px clamp(24px, 2.5vw, 42px); margin-bottom: clamp(20px, 3vh, 34px); border-radius: 22px; background: white; box-shadow: 0 8px 24px #6b4d5715; font-size: clamp(20px, 1.6vw, 29px); }
+    .ready { color: #16835d; font-weight: 700; }
+    .menu { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(18px, 2vw, 32px); }
+    button { min-height: clamp(190px, 25vh, 270px); padding: 24px; border: 4px solid transparent; border-radius: 30px; background: white; font: inherit; font-size: clamp(28px, 2.4vw, 42px); font-weight: 700; cursor: pointer; box-shadow: 0 8px 24px #6b4d5715; touch-action: manipulation; }
+    button:active { transform: scale(.98); }
+    button.selected { border-color: #ff5d8f; background: #fff0f5; }
+    .emoji { display: block; margin-bottom: 16px; font-size: clamp(72px, 7vw, 110px); }
+    .order { width: 100%; min-height: clamp(82px, 11vh, 112px); margin-top: clamp(22px, 3vh, 34px); color: white; background: #ff5d8f; }
+    .order:disabled { cursor: not-allowed; background: #c9bfc2; }
+    #message { min-height: 40px; margin: clamp(18px, 2.5vh, 30px) 0 0; text-align: center; font-size: clamp(22px, 1.8vw, 32px); font-weight: 700; }
+    .screen[hidden] { display: none; }
+    .making, .complete { text-align: center; }
+    .making h2, .complete h2 { margin: 0 0 18px; font-size: clamp(38px, 4vw, 66px); }
+    .making p, .complete p { font-size: clamp(22px, 2vw, 34px); }
+    .gear { display: inline-grid; width: 1.25em; height: 1.25em; place-items: center; align-self: center; margin: clamp(24px, 4vh, 48px) 0; font-size: clamp(110px, 13vw, 190px); line-height: 1; transform-origin: center; animation: spin 2s linear infinite; }
+    .timer { margin-bottom: 22px; font-size: clamp(34px, 3.5vw, 58px); font-weight: 800; color: #ff4f87; }
+    .progress-track { width: min(900px, 100%); height: clamp(28px, 4vh, 44px); margin: 0 auto; overflow: hidden; border-radius: 999px; background: #eadfe2; }
+    .progress-bar { width: 0; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #ff8fab, #ff4f87); transition: width 1s linear; }
+    .restart { width: min(600px, 100%); min-height: 92px; margin-top: 34px; color: white; background: #ff5d8f; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @media (max-width: 700px) { header { min-height: 13vh; padding-top: 72px; } .admin-link { top: 16px; right: 16px; } main { width: 90vw; justify-content: flex-start; } .menu { grid-template-columns: 1fr; } button { min-height: 140px; } .status { align-items: flex-start; flex-direction: column; } }
+  </style>
+</head>
+<body>
+  <header>
+    <a class="admin-link" href="/admin">관리자 페이지</a>
+    <h1><span class="brand-ros">ROSKIN</span> <span class="brand-robbins">ROBBINS</span></h1>
+    <div>ROBOT ICE CREAM SHOP · 원하는 맛을 선택해 주세요</div>
+  </header>
+  <main id="orderScreen" class="screen">
+    <section class="status">
+      <span>로봇 상태</span>
+      <span class="ready">● 준비 완료</span>
+    </section>
+    <section id="menu" class="menu" aria-label="아이스크림 메뉴"></section>
+    <button id="order" class="order" type="button" disabled>주문하기</button>
+    <p id="message" aria-live="polite">메뉴를 선택해 주세요.</p>
+  </main>
+  <main id="makingScreen" class="screen making" hidden>
+    <h2>아이스크림 제작 중</h2>
+    <p><strong id="makingFlavor"></strong> 아이스크림을 만들고 있습니다.</p>
+    <div class="gear" aria-hidden="true">⚙️</div>
+    <div id="timer" class="timer">주문을 처리하고 있습니다.</div>
+    <div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+      <div id="progressBar" class="progress-bar"></div>
+    </div>
+  </main>
+  <main id="completeScreen" class="screen complete" hidden>
+    <div class="emoji">🍨</div>
+    <h2>아이스크림 제작이 완료되었습니다.</h2>
+    <p><strong id="completeFlavor"></strong> 아이스크림을 받아 주세요.</p>
+    <button id="restart" class="restart" type="button">처음으로</button>
+  </main>
+  <script>
+    const menu = document.querySelector('#menu');
+    const orderButton = document.querySelector('#order');
+    const message = document.querySelector('#message');
+    const orderScreen = document.querySelector("#orderScreen");
+    const makingScreen = document.querySelector("#makingScreen");
+    const completeScreen = document.querySelector("#completeScreen");
+    const makingFlavor = document.querySelector("#makingFlavor");
+    const completeFlavor = document.querySelector("#completeFlavor");
+    const timer = document.querySelector("#timer");
+    const progressBar = document.querySelector("#progressBar");
+    const progressTrack = document.querySelector(".progress-track");
+    const restartButton = document.querySelector("#restart");
+    const flavorEmoji = { '바닐라': '🍦', '초콜릿': '🍫', '딸기': '🍓' };
+    let selectedFlavor = null;
+    let statusPollId;
+    let completionTimeoutId;
+
+    function selectFlavor(button, flavor) {
+      document.querySelectorAll('[data-flavor-id]').forEach((item) => item.classList.remove('selected'));
+      button.classList.add('selected');
+      selectedFlavor = flavor;
+      orderButton.disabled = false;
+      message.textContent = `${flavor.name} 맛을 선택했습니다.`;
+    }
+
+    async function loadFlavors() {
+      selectedFlavor = null;
+      orderButton.disabled = true;
+      message.textContent = '판매 가능한 메뉴를 불러오는 중입니다.';
+      try {
+        const response = await fetch('/flavors?available_only=true');
+        if (!response.ok) throw new Error('메뉴 조회 실패');
+        const flavors = await response.json();
+        menu.replaceChildren();
+        flavors.forEach((flavor) => {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.dataset.flavorId = flavor.id;
+          button.innerHTML = `<span class="emoji">${flavorEmoji[flavor.name] || '🍨'}</span>${flavor.name}`;
+          button.addEventListener('click', () => selectFlavor(button, flavor));
+          menu.appendChild(button);
+        });
+        message.textContent = flavors.length ? '메뉴를 선택해 주세요.' : '현재 판매 가능한 메뉴가 없습니다.';
+      } catch (error) {
+        message.textContent = '서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.';
+      }
+    }
+
+    async function pollOrder(orderId) {
+      try {
+        const response = await fetch(`/orders/${orderId}`);
+        if (!response.ok) throw new Error('주문 상태 조회 실패');
+        const order = await response.json();
+        if (order.status === 'PENDING') {
+          timer.textContent = '로봇 배정 대기 중';
+          progressBar.style.width = '5%';
+          progressTrack.setAttribute('aria-valuenow', '5');
+        } else if (order.status === 'PROCESSING') {
+          timer.textContent = '아이스크림 제조 중';
+          progressBar.style.width = '35%';
+          progressTrack.setAttribute('aria-valuenow', '35');
+        } else if (order.status === 'COMPLETED') {
+          clearInterval(statusPollId);
+          timer.textContent = '아이스크림 제조 완료';
+          progressBar.style.width = '100%';
+          progressTrack.setAttribute('aria-valuenow', '100');
+          clearTimeout(completionTimeoutId);
+          completionTimeoutId = setTimeout(() => {
+            makingScreen.hidden = true;
+            completeScreen.hidden = false;
+            completeFlavor.textContent = order.flavor_name;
+          }, 1200);
+        } else if (order.status === 'FAILED') {
+          clearInterval(statusPollId);
+          makingScreen.hidden = true;
+          orderScreen.hidden = false;
+          message.textContent = '아이스크림 제조에 실패했습니다. 관리자에게 문의해 주세요.';
+        }
+      } catch (error) {
+        timer.textContent = '주문 상태를 다시 확인하고 있습니다.';
+      }
+    }
+
+    async function createOrder() {
+      if (!selectedFlavor) return;
+      orderButton.disabled = true;
+      message.textContent = '주문을 접수하고 있습니다.';
+      try {
+        const response = await fetch('/orders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ flavor_id: selectedFlavor.id }),
+        });
+        const body = await response.json();
+        if (!response.ok) throw new Error(body.detail || '주문 생성 실패');
+        startMaking(body);
+      } catch (error) {
+        orderButton.disabled = false;
+        message.textContent = error.message;
+      }
+    }
+
+    function startMaking(order) {
+      orderScreen.hidden = true;
+      makingScreen.hidden = false;
+      makingFlavor.textContent = order.flavor_name;
+      timer.textContent = '로봇 배정 대기 중';
+      progressBar.style.width = '5%';
+      progressTrack.setAttribute('aria-valuenow', '5');
+      clearInterval(statusPollId);
+      clearTimeout(completionTimeoutId);
+      statusPollId = setInterval(() => pollOrder(order.id), 2000);
+    }
+
+    orderButton.addEventListener('click', createOrder);
+    restartButton.addEventListener("click", () => {
+      clearTimeout(completionTimeoutId);
+      completeScreen.hidden = true;
+      orderScreen.hidden = false;
+      loadFlavors();
+    });
+    loadFlavors();
+  </script>
+</body>
+</html>
