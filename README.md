@@ -1,261 +1,170 @@
-# ROS 2 기반 아이스크림 제조 자동화 시스템
+# Roskin Robbins
 
-두산 협동로봇 **M0609**가 컵을 공급하고, 스쿱으로 아이스크림을 담은 뒤 완성된 컵을 제공하는 자동화 프로젝트입니다. 웹 키오스크에서 주문을 접수하고 FastAPI·PostgreSQL을 통해 주문 상태를 관리하며, ROS 2 Action과 Service를 이용해 실제 로봇 동작과 관리자 명령을 처리합니다.
+ROS 2와 두산 협동로봇을 활용한 아이스크림 제조 자동화 시스템
 
----
+## 프로젝트 개요
 
-## 1) 시스템 설계
+- **목표**: 웹 주문부터 아이스크림 제조와 완성품 제공까지 이어지는 협동로봇 기반 무인 자동화 시스템 구현
+- **주요 기능**: 키오스크 주문, 제조 공정 제어, 실시간 상태 표시, 관리자 모니터링 및 수동 제어
+- **사용 장비**: Doosan M0609, 컵 그리퍼, 스쿱 그리퍼, 디지털 입출력 센서
+- **개발 환경**: Ubuntu 24.04.4 LTS, ROS 2 Jazzy, Python 3.12, PostgreSQL 16
+- **주요 기술 스택**: ROS 2, Doosan Robotics API, FastAPI, PostgreSQL, HTML/CSS/JavaScript
 
-### 시스템 구성
+## 시연 영상
 
-- **웹 UI**
-  - 키오스크: 맛 선택 및 주문 접수
-  - 관리자 화면: 로봇 상태 확인, 공정 제어 및 수동 명령 전송
-- **FastAPI 백엔드** (`backend/app`)
-  - 웹 페이지와 REST API 제공
-  - 주문, 오류, 로봇 상태 및 관리자 명령 관리
-  - PostgreSQL 데이터베이스 연동
-- **주문·관리자 브리지** (`order_bridge`)
-  - 백엔드에서 대기 중인 주문과 관리자 명령을 주기적으로 조회
-  - 주문을 `/make_icecream` ROS 2 Action으로 전달
-  - 일시정지·재개·정지 및 관리자 수동 명령을 ROS 2 Service로 전달
-  - 공정 진행 상태와 처리 결과를 백엔드로 반환
-- **아이스크림 제조 서버** (`make_icecream_server`)
-  - `MakeIcecream` Action Server 제공
-  - 컵 공급, 스쿱 파지, 아이스크림 스쿠핑, 컵 투입, 스쿱 반환 및 컵 제공 공정 수행
-  - `AdminCommand` Service를 통한 관리자 수동 제어 지원
-- **Doosan ROS 2 드라이버** (`dsr_bringup2`, `dsr_controller2`)
-  - 실제 M0609 로봇 연결
-  - 로봇 상태, 모션, 디지털 I/O 및 힘 제어 기능 제공
+<div align="center">
 
-### ROS 2 인터페이스
+[▶ 아이스크림 제조 시연 영상 보기](협동1.mp4)
 
-- Action: `/make_icecream` (`icecream_interfaces/action/MakeIcecream`)
-- Service: `/dsr01/admin_command` (`icecream_interfaces/srv/AdminCommand`)
-- Doosan 제어 Service:
-  - `/dsr01/dsr_controller2/motion/move_pause`
-  - `/dsr01/dsr_controller2/motion/move_resume`
-  - `/dsr01/dsr_controller2/motion/move_stop`
+</div>
 
-### 데이터 흐름
+## 다이어그램
+
+<div align="center">
+
+### 시스템 아키텍처
+
+<img src="src/system_architecture.png" alt="시스템 아키텍처" width="700">
+
+### 공정 플로우차트
+
+<img src="docs/flow_chart.png" alt="공정 플로우차트" width="700">
+
+</div>
+
+## 상세 설명
+
+### 문제 정의
+
+- 일반적인 협동로봇 예제는 개별 모션 실행에 집중되어 있어 주문 접수, 제조, 상태 관리까지 연결된 서비스형 자동화 사례가 부족합니다.
+- 키오스크, 백엔드, 데이터베이스, ROS 2 노드가 분리되어 있으면 주문과 로봇 상태를 일관되게 관리하기 어렵습니다.
+- 컵과 스쿱을 다루는 실제 제조 공정에서는 파지 확인, 힘 제어, 일시정지, 오류 처리 등 실기 환경을 고려한 제어가 필요합니다.
+
+### 해결 방안
+
+- 웹 키오스크와 FastAPI를 이용해 사용자 주문을 접수하고 PostgreSQL에 공정 상태를 기록합니다.
+- 주문 브리지가 백엔드의 대기 주문을 ROS 2 Action Goal로 변환해 제조 서버에 전달합니다.
+- 제조 서버는 컵 공급, 스쿱 파지, 아이스크림 스쿠핑, 컵 투입, 스쿱 반환, 완성품 제공 단계를 순차 실행합니다.
+- ROS 2 Action Feedback을 통해 진행 상황을 백엔드와 UI에 반영합니다.
+- 관리자 화면과 Service를 이용해 일시정지, 재개, 정지, 홈 이동 및 개별 공정 명령을 처리합니다.
+
+### 주요 기능
+
+- **키오스크 주문**: 맛 선택, 주문 접수, 제조 진행 상태와 결과 표시
+- **관리자 제어**: 로봇 상태 확인, 공정 시작/정지, 수동 명령 전송
+- **제조 자동화**: 컵 공급부터 완성품 제공까지 단계별 모션 실행
+- **ROS 2 연동**: Action 기반 제조 요청과 Feedback, Service 기반 관리자 명령
+- **데이터 관리**: 주문 이력, 오류, 로봇 상태, 관리자 명령을 PostgreSQL에 저장
+- **안전 제어**: Pause/Resume/Stop, 디지털 입력 기반 파지 확인, 힘 제어 활용
+- **모듈화**: 컵, 스쿱, 서빙, 공통 모션을 독립 모듈로 분리해 유지보수성 확보
+- **확장성**: 새로운 맛, 공정 단계, 관리자 명령, UI 기능을 추가할 수 있는 구조
+
+## 시스템 구성
+
+| 구성 요소 | 역할 |
+| --- | --- |
+| 키오스크/관리자 UI | 주문 접수, 공정 상태 표시, 관리자 제어 |
+| FastAPI | REST API와 웹 페이지 제공, 상태 전이 및 요청 검증 |
+| PostgreSQL | 주문, 오류, 로봇 상태, 관리자 명령 저장 |
+| `order_bridge` | HTTP 주문과 ROS 2 Action/Service 변환 |
+| `make_icecream_server` | 제조 공정 오케스트레이션 및 Action Server |
+| Doosan ROS 2 Driver | M0609 모션, 디지털 I/O, 힘 제어 |
+
+## 공정 흐름
 
 1. 사용자가 키오스크에서 맛을 선택하고 주문합니다.
-2. FastAPI가 주문을 PostgreSQL의 `order_history`에 저장합니다.
-3. `order_bridge`가 대기 주문을 조회하고 `/make_icecream` Action Goal을 전송합니다.
-4. `make_icecream_server`가 컵 및 스쿱 모션 모듈을 순서대로 실행합니다.
-5. Doosan ROS 2 드라이버가 실제 M0609 로봇과 디지털 I/O를 제어합니다.
-6. 공정 피드백과 완료·실패 결과가 브리지를 통해 FastAPI와 DB에 반영됩니다.
-7. 키오스크와 관리자 화면에 최신 주문 및 로봇 상태가 표시됩니다.
+2. FastAPI가 주문을 PostgreSQL에 저장합니다.
+3. `order_bridge`가 가장 오래된 대기 주문을 선점합니다.
+4. `/make_icecream` Action Goal을 제조 서버에 전송합니다.
+5. 제조 서버가 컵 공급, 스쿱 파지, 스쿠핑, 컵 투입, 스쿱 반환, 컵 제공을 실행합니다.
+6. 단계별 Feedback과 성공/실패 결과가 백엔드에 반영됩니다.
+7. 키오스크와 관리자 화면이 최신 주문 및 로봇 상태를 표시합니다.
 
-### 플로우차트
+## ROS 2 인터페이스
 
-![alt text](docs/flow_chart.png)
+| 종류 | 이름 | 역할 |
+| --- | --- | --- |
+| Action | `/make_icecream` | 아이스크림 제조 요청, 진행 Feedback, 결과 반환 |
+| Service | `/dsr01/admin_command` | 관리자 수동 명령 처리 |
+| Service | `/dsr01/dsr_controller2/motion/move_pause` | 로봇 일시정지 |
+| Service | `/dsr01/dsr_controller2/motion/move_resume` | 로봇 동작 재개 |
+| Service | `/dsr01/dsr_controller2/motion/move_stop` | 로봇 정지 |
 
----
-
-## 2) 운영체제 환경
-
-현재 개발 및 실기 테스트 환경은 다음과 같습니다.
-
-- OS: Ubuntu 24.04.4 LTS (Noble Numbat)
-- ROS 2: Jazzy Jalisco
-- Python: 3.12.3
-- PostgreSQL: 16
-- 로봇 통신 방식: Ethernet
-- 로봇 기본 주소: `192.168.1.100:12345`
-- ROS Domain ID: `30`
-
----
-
-## 3) 사용한 장비 목록
-
-- Doosan Robotics M0609 협동로봇
-- Doosan 로봇 컨트롤러
-- Ubuntu 및 ROS 2 실행용 PC
-- Ethernet 어댑터 및 케이블
-- 컵 파지용 그리퍼
-- 스쿱 파지용 그리퍼
-- 아이스크림 스쿱
-- 종이컵 및 컵 공급부
-- 아이스크림 용기와 작업대
-- 디지털 입출력 기반 솔레노이드 및 파지 확인 센서
-
-코드의 주요 로봇 설정은 다음과 같습니다.
+## 주요 로봇 설정
 
 - Robot ID: `dsr01`
 - Robot Model: `m0609`
+- Robot Address: `192.168.1.100:12345`
 - TCP: `GripperDA_v1_A3`
-- 스쿱 그리퍼 출력/입력: DO 1 / DI 1
-- 컵 그리퍼 출력/입력: DO 3 / DI 3
-- 그리퍼 열기 출력: DO 2
+- 스쿱 그리퍼: DO 1 / DI 1
+- 컵 그리퍼: DO 3 / DI 3
+- 그리퍼 열기: DO 2
+- ROS Domain ID: `30`
 
-> 실제 로봇 실행 전에 TCP·Tool 설정, 작업 좌표, 비상정지 장치 및 주변 안전 상태를 반드시 확인합니다.
+> 실제 로봇 실행 전 TCP/Tool 설정, 작업 좌표, 비상정지 장치 및 주변 안전 상태를 반드시 확인해야 합니다.
 
----
+## 실행 방법
 
-## 4) 의존성
-
-### Python 패키지 (`backend/requirements.txt`)
-
-```txt
-fastapi>=0.115,<1.0
-uvicorn[standard]>=0.34,<1.0
-psycopg[binary]>=3.2,<4.0
-```
-
-설치 방법:
-
-```bash
-cd /home/dexy/ws_cobot_pjt/icecream_pj/backend
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-```
-
-### ROS 2 패키지
-
-- `rclpy`
-- `action_msgs`
-- `ament_index_python`
-- `launch`, `launch_ros`
-- `icecream_interfaces`
-- `dsr_bringup2`
-- `dsr_common2`
-- `dsr_msgs2`
-- `python3-requests`
-- `rosidl_default_generators`
-- `rosidl_default_runtime`
-
-두산 ROS 2 패키지는 아래 워크스페이스에 빌드되어 있다고 가정합니다.
-
-```text
-/home/dexy/ws_cobot_pjt/ws_dsr
-```
-
----
-
-## 5) 실행 순서
-
-### 최초 실행 또는 ROS 코드 변경 후 빌드
-
-```bash
-cd /home/dexy/ws_cobot_pjt/icecream_pj
-
-source /opt/ros/jazzy/setup.bash
-source /home/dexy/ws_cobot_pjt/ws_dsr/install/setup.bash
-
-colcon build \
-  --packages-select icecream_interfaces icecream_pj \
-  --symlink-install
-
-source install/setup.bash
-```
-
-`AdminCommand.srv` 같은 ROS 인터페이스를 변경한 경우에는 인터페이스 패키지를 먼저 깨끗하게 빌드합니다.
-
-```bash
-colcon build \
-  --packages-select icecream_interfaces \
-  --cmake-clean-cache
-
-source install/setup.bash
-colcon build --packages-select icecream_pj --symlink-install
-```
-
-### 기본 실행: 터미널 2개
-
-#### 터미널 1 — PostgreSQL 및 FastAPI
+### Terminal 1: PostgreSQL 및 FastAPI
 
 ```bash
 sudo systemctl start postgresql
 
-cd /home/dexy/ws_cobot_pjt/icecream_pj/backend
+cd backend
 source .venv/bin/activate
-export DATABASE_URL='postgresql://icecream:icecream@127.0.0.1:5432/icecream_db'
+export DATABASE_URL=postgresql://icecream:icecream@127.0.0.1:5432/icecream_db
 
 uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 
-정상 실행 메시지:
-
-```text
-Application startup complete.
-Uvicorn running on http://0.0.0.0:8000
-```
-
-#### 터미널 2 — 실제 로봇 및 주요 ROS 2 코드
+### Terminal 2: ROS 2 및 실제 로봇
 
 ```bash
-cd /home/dexy/ws_cobot_pjt/icecream_pj
-
 export ROS_DOMAIN_ID=30
 source /opt/ros/jazzy/setup.bash
-source /home/dexy/ws_cobot_pjt/ws_dsr/install/setup.bash
+source <doosan_ws>/install/setup.bash
 source install/setup.bash
 
 ros2 launch icecream_pj icecream_system.launch.py
 ```
 
-`icecream_system.launch.py`는 다음 ROS 구성만 실행합니다.
-
-1. Doosan M0609 bringup 및 RViz
-2. `make_icecream_server`
-3. `order_bridge`
-
-ROS launch 파일은 FastAPI나 PostgreSQL을 실행하지 않습니다. 터미널 1을 먼저 실행한 후 터미널 2를 실행하며, 두 터미널은 종료하지 않고 유지합니다.
-
-### 통합 실행 스크립트(선택)
-
-터미널 하나에서 FastAPI와 ROS 2 시스템을 함께 실행할 때만 사용합니다.
-
-```bash
-sudo systemctl start postgresql
-
-cd /home/dexy/ws_cobot_pjt/icecream_pj
-./run_system.sh
-```
-
-`run_system.sh`는 PostgreSQL이 실행 중인지 확인하고 FastAPI를 백그라운드로 실행한 다음 `icecream_system.launch.py`를 실행합니다. 기본 터미널 2개 방식과 동시에 실행하면 서버와 ROS 노드가 중복될 수 있으므로 두 방식 중 하나만 사용합니다.
-
-### 웹 링크
+### 웹 페이지
 
 - 키오스크: <http://127.0.0.1:8000/kiosk>
 - 관리자 화면: <http://127.0.0.1:8000/admin>
-- 데이터베이스 조회 화면: <http://127.0.0.1:8000/database>
+- 데이터베이스 조회: <http://127.0.0.1:8000/database>
 - API 문서: <http://127.0.0.1:8000/docs>
-- 상태 확인 API: <http://127.0.0.1:8000/health>
-- 관리자 PIN: `1234`
 
-### 종료 순서
-
-1. 터미널 2에서 `Ctrl+C`를 눌러 ROS 2 노드와 로봇 연결을 종료합니다.
-2. 터미널 1에서 `Ctrl+C`를 눌러 FastAPI를 종료합니다.
-3. PostgreSQL을 종료해야 하는 경우에만 다음 명령을 실행합니다.
-
-```bash
-sudo systemctl stop postgresql
-```
----
-
-## 6) 프로젝트 주요 디렉터리
+## 프로젝트 구조
 
 ```text
 icecream_pj/
-├── backend/
-│   ├── app/                    # FastAPI API 및 웹 서버
-│   ├── static/                 # 키오스크·관리자 정적 파일
-│   ├── requirements.txt        # Python 의존성
-│   └── schema.sql              # PostgreSQL 스키마
+├── backend/                    # FastAPI 및 PostgreSQL
+├── docs/                       # README 이미지
+├── history/                    # 이전 프로젝트 버전
 ├── src/
-│   ├── icecream_interfaces/    # MakeIcecream Action, AdminCommand Service
-│   └── icecream_pj/
-│       ├── icecream_pj/        # 제조 서버, 브리지, 로봇 모션 코드
-│       └── launch/             # ROS 2 launch 파일
-├── run_system.sh               # FastAPI + ROS 통합 실행 스크립트
-└── 2.Readme.md
+│   ├── README.md               # 제출 및 실행 안내
+│   ├── DOCUMENT.md             # 시스템 상세 기술문서
+│   ├── backend/                # 제출용 백엔드
+│   ├── frontend/               # 키오스크 및 관리자 UI
+│   ├── icecream_interfaces/    # ROS 2 Action 및 Service
+│   └── icecream_pj/            # ROS 2 Python 패키지
+├── ui_preview/                 # 웹 UI 미리보기
+├── 협동1.mp4                   # 제조 시연 영상
+└── run_system.sh               # 통합 실행 스크립트
 ```
 
----
+## 상세 문서
+
+- [제출 및 실행 안내](src/README.md)
+- [시스템 상세 기술문서](src/DOCUMENT.md)
+- [백엔드 안내](backend/README.md)
+- [이전 버전 기록](history/README.md)
+
+## 참고 자료
+
+- [Doosan Robotics ROS 2](https://github.com/DoosanRobotics/doosan-robot2)
+- [Doosan Robotics Programming Manual](https://manual.doosanrobotics.com/ko/programming-manual/3.3.0/publish/)
 
 ## 라이선스
 
