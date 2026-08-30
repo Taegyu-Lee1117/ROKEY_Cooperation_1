@@ -2,7 +2,7 @@
 
 ## 1. 문서 목적과 기준
 
-이 문서는 Doosan M0609 협동로봇, FastAPI, PostgreSQL, ROS 2를 결합한 아이스크림 자동 제조 시스템의 실제 구현 구조를 설명한다. 대상 독자는 프로젝트를 인수·검토·실행하거나 로봇 모션과 웹 서비스를 유지보수하는 개발자 및 운영자다.
+이 문서는 Doosan M0609 협동로봇, FastAPI, PostgreSQL, ROS 2를 결합한 아이스크림 자동 제조 시스템의 실제 구현 구조를 설명한다. 대상 독자는 프로젝트를 인수, 검토, 실행하거나 로봇 모션과 웹 서비스를 유지보수하는 개발자 및 운영자다.
 
 작성 기준은 다음과 같다.
 
@@ -17,14 +17,14 @@
 
 ```mermaid
 flowchart LR
-    UI[키오스크·관리자 UI] <-->|HTTP·WebSocket| API[FastAPI]
+    UI[키오스크/관리자 UI] <-->|HTTP/WebSocket| API[FastAPI]
     API <-->|SQL| DB[(PostgreSQL)]
     API <-->|HTTP polling| BR[order_bridge]
     BR <-->|ROS 2 Action| AS[make_icecream_server]
-    BR -->|Pause·Resume·Stop Service| DSR[dsr_controller2]
+    BR -->|Pause/Resume/Stop Service| DSR[dsr_controller2]
     AS -->|DSR_ROBOT2 API| DSR
     DSR <-->|Ethernet| ROBOT[M0609 Controller]
-    ROBOT <-->|Digital I/O| GRIP[그리퍼·센서]
+    ROBOT <-->|Digital I/O| GRIP[그리퍼/센서]
 ```
 
 ## 3. 구성 요소와 책임
@@ -32,9 +32,9 @@ flowchart LR
 | 구성 요소 | 위치 | 책임 |
 |---|---|---|
 | 웹 UI | `frontend/roskin_robbins_v5.html` | 맛 선택, 주문 생성, 진행 표시, 관리자 HMI |
-| FastAPI | `backend/app/main.py` | REST·WebSocket, 검증, 상태 전이, DB 접근 |
+| FastAPI | `backend/app/main.py` | REST/WebSocket, 검증, 상태 전이, DB 접근 |
 | PostgreSQL | `backend/schema.sql` | 맛, 주문, 오류, 로봇 상태, 관리자 명령 저장 |
-| 주문 브리지 | `icecream_pj/.../integrated_order_bridge.py` | HTTP 주문과 ROS Action 변환, 상태·결과 반영 |
+| 주문 브리지 | `icecream_pj/.../integrated_order_bridge.py` | HTTP 주문과 ROS Action 변환, 상태/결과 반영 |
 | 제조 서버 | `icecream_pj/.../make_icecream_server.py` | Action 실행, 단계 오케스트레이션, 관리자 Service |
 | 공통 제어 | `motion_common.py` | 이동 API 래핑, I/O, 힘 조회, 오류 변환 |
 | 모션 모듈 | `cup.py`, `scoop.py`, `serve.py` | 컵, 스쿱, 제조, 서빙 동작 분리 |
@@ -60,8 +60,8 @@ FastAPI만 DB에 직접 접근하고 UI와 ROS 노드는 SQL 구조를 알지 �
 | 노드 | 역할 | 주요 연결 |
 |---|---|---|
 | `/dsr01/make_icecream_server` | 제조 Action과 관리자 Service 제공 | `/make_icecream`, `/dsr01/admin_command` |
-| `order_bridge` | API polling과 ROS 요청 변환 | Action Client, 관리자·정지 Service Client |
-| `dsr_controller2` 계열 | 실제 모션·I/O·정지 처리 | Doosan Controller |
+| `order_bridge` | API polling과 ROS 요청 변환 | Action Client, 관리자/정지 Service Client |
+| `dsr_controller2` 계열 | 실제 모션/I/O/정지 처리 | Doosan Controller |
 
 제조 서버는 Action 처리 노드와 동기 DSR API 노드를 분리한다. DSR 동기 API가 executor에서 노드를 분리하는 동작이 Action 수신을 방해하지 않도록 하기 위한 구조다.
 
@@ -130,7 +130,7 @@ Service 이름은 `/dsr01/admin_command`이다.
 | Response | `success` | 실행 성공 여부 |
 | Response | `message` | 결과 또는 실패 사유 |
 
-지원 명령은 `HOME`, `END`, `CUP_PICK`, `CUP_PLACE`, `SCOOP_PICK`, `ICECREAM`, `SERVE_CUP`, `GRIPPER_OPEN`, `GRIPPER_CUP`, `GRIPPER_SCOOP`, `MOVE_JOINTS`다. `START`, `PAUSE`, 제조 중 `END`는 브리지에서 로봇 상태와 Doosan의 Pause·Resume·Stop Service를 조합해 처리한다.
+지원 명령은 `HOME`, `END`, `CUP_PICK`, `CUP_PLACE`, `SCOOP_PICK`, `ICECREAM`, `SERVE_CUP`, `GRIPPER_OPEN`, `GRIPPER_CUP`, `GRIPPER_SCOOP`, `MOVE_JOINTS`다. `START`, `PAUSE`, 제조 중 `END`는 브리지에서 로봇 상태와 Doosan의 Pause/Resume/Stop Service를 조합해 처리한다.
 
 ## 7. FastAPI 인터페이스
 
@@ -138,11 +138,11 @@ Service 이름은 `/dsr01/admin_command`이다.
 
 | Method | Path | 역할 |
 |---|---|---|
-| GET | `/`, `/kiosk` | 통합 키오스크·관리자 HTML 제공 |
+| GET | `/`, `/kiosk` | 통합 키오스크/관리자 HTML 제공 |
 | GET | `/admin`, `/database` | 관리자 화면으로 이동 |
 | GET | `/health` | API와 DB 연결 상태 확인 |
 | WS | `/ws/orders/{order_id}` | 주문 진행 상태 실시간 전달 |
-| GET/PATCH | `/robot/state` | 단일 로봇 최신 상태 조회·갱신 |
+| GET/PATCH | `/robot/state` | 단일 로봇 최신 상태 조회/갱신 |
 
 ### 7.2 맛과 주문
 
@@ -153,21 +153,21 @@ Service 이름은 `/dsr01/admin_command`이다.
 | PATCH | `/flavors/{id}` | 맛 정보와 판매 상태 수정 |
 | POST | `/orders` | 판매 가능한 맛으로 주문 생성 |
 | GET | `/orders`, `/orders/{id}` | 주문 이력 조회 |
-| GET | `/orders/stats` | 상태·맛별 주문 통계 |
+| GET | `/orders/stats` | 상태/맛별 주문 통계 |
 | GET | `/robot/orders/next` | 가장 오래된 대기 주문 조회 |
 | POST | `/robot/orders/{id}/claim` | 주문 원자적 선점 |
-| POST | `/robot/orders/{id}/feedback` | 로봇 진행·완료·실패 반영 |
+| POST | `/robot/orders/{id}/feedback` | 로봇 진행/완료/실패 반영 |
 
 ### 7.3 오류와 관리자 명령
 
 | Method | Path | 역할 |
 |---|---|---|
-| POST/GET | `/errors` | 오류 저장·조회 |
-| GET | `/errors/stats` | 단계·코드별 오류 통계 |
+| POST/GET | `/errors` | 오류 저장/조회 |
+| GET | `/errors/stats` | 단계/코드별 오류 통계 |
 | POST | `/robot/admin/commands` | 관리자 명령 생성 |
 | GET | `/robot/admin/commands/next` | 대기 명령 조회 |
 | POST | `/robot/admin/commands/{id}/claim` | 명령 선점 |
-| PATCH | `/robot/admin/commands/{id}/result` | 성공·실패 결과 저장 |
+| PATCH | `/robot/admin/commands/{id}/result` | 성공/실패 결과 저장 |
 
 API 요청의 DB 트랜잭션은 요청 단위 dependency에서 commit 또는 rollback된다. 브리지의 HTTP timeout은 3초이며 주문 polling 기본 주기는 2초, 관리자 명령 polling 주기는 0.5초다.
 
@@ -219,10 +219,10 @@ erDiagram
 - 기준 좌표계: `DR_BASE`
 - TCP: `GripperDA_v1_A3`
 - 로봇 모델: M0609
-- 컵·스쿱 solution: `SOL_CUP=2`, `SOL_SCOOP=2`
-- DO1/DI1: 스쿱 파지·확인
+- 컵/스쿱 solution: `SOL_CUP=2`, `SOL_SCOOP=2`
+- DO1/DI1: 스쿱 파지/확인
 - DO2: 그리퍼 열기
-- DO3/DI3: 컵 파지·확인
+- DO3/DI3: 컵 파지/확인
 
 출력은 파지 명령 전에 모두 끄고 필요한 출력 하나만 활성화해 상호 충돌을 막는다. 좌표는 `motion_config.py`에서 6개 값 `[X,Y,Z,Rx,Ry,Rz]` 또는 관절값으로 관리한다.
 
@@ -282,16 +282,16 @@ M6와 컵 투입 자세의 큰 차이를 한 번의 직선 보간으로 처리�
 - E-Stop과 Soft Stop 위치 및 동작을 확인한다.
 - 오류 후 현재 파지물과 로봇 위치를 확인하기 전 자동 재시작하지 않는다.
 
-세부 위험요소는 작업자 충돌, 협착, 통 전도, 스쿱 이탈, 컵 변형·기울어짐, 재료 비산, 내용물 낙하, 특이점, 통신 장애다.
+세부 위험요소는 작업자 충돌, 협착, 통 전도, 스쿱 이탈, 컵 변형/기울어짐, 재료 비산, 내용물 낙하, 특이점, 통신 장애다.
 
 ## 11. 현재 제한사항과 개선 과제
 
-1. **파지 실패 처리**: DI1·DI3 확인이 실패해도 현재 `grip_with_retry()`는 경고만 남기고 계속 진행한다. 이름과 달리 실제 재시도나 중단이 없으므로 실기 안전 검증 후 정책을 강화해야 한다.
-2. **관리자 인증**: 관리자 PIN은 프론트엔드 편의 기능이며 서버 측 인증·권한 검사가 아니다. 운영 배포에는 인증과 접근 제어가 필요하다.
+1. **파지 실패 처리**: DI1/DI3 확인이 실패해도 현재 `grip_with_retry()`는 경고만 남기고 계속 진행한다. 이름과 달리 실제 재시도나 중단이 없으므로 실기 안전 검증 후 정책을 강화해야 한다.
+2. **관리자 인증**: 관리자 PIN은 프론트엔드 편의 기능이며 서버 측 인증/권한 검사가 아니다. 운영 배포에는 인증과 접근 제어가 필요하다.
 3. **레인 상태 영속성**: 레인 순회 상태가 메모리에만 있어 서버 재시작 시 초기화된다.
 4. **Heartbeat 부재**: HTTP timeout은 있지만 명시적 로봇 heartbeat와 통신 단절 상태 전이는 구현되어 있지 않다.
-5. **프로세스 복구**: 브리지나 API가 중단되면 `PROCESSING` 주문·명령이 남을 수 있으므로 시작 시 stale 상태 복구 정책이 필요하다.
-6. **실기 검증 범위**: 현재 제출 코드의 속도·좌표·힘 임계값은 장비와 재료 조건에 따라 달라질 수 있다. 따라서 속도·좌표·레인 2를 포함한 반복 실기 시험 기록을 별도로 관리해야 한다.
+5. **프로세스 복구**: 브리지나 API가 중단되면 `PROCESSING` 주문/명령이 남을 수 있으므로 시작 시 stale 상태 복구 정책이 필요하다.
+6. **실기 검증 범위**: 현재 제출 코드의 속도/좌표/힘 임계값은 장비와 재료 조건에 따라 달라질 수 있다. 따라서 속도/좌표/레인 2를 포함한 반복 실기 시험 기록을 별도로 관리해야 한다.
 7. **패키지 의존성**: `integrated_order_bridge.py`가 `dsr_msgs2`를 직접 import하므로 `icecream_pj/package.xml`에 직접 실행 의존성을 선언하는 것이 바람직하다.
 8. **배포 보안**: DB 접속 문자열, 관리자 PIN, API의 네트워크 노출 범위를 환경별로 분리해야 한다.
 
@@ -302,7 +302,7 @@ M6와 컵 투입 자세의 큰 차이를 한 번의 직선 보간으로 처리�
 - Python 구문 검사와 ROS 인터페이스 빌드
 - FastAPI `/health`와 API 입력 검증 시험
 - 주문 선점의 중복 방지 시험
-- Action Goal 수락·거부·취소 시험
+- Action Goal 수락/거부/취소 시험
 - 관리자 명령의 단일 처리 및 결과 저장 시험
 - WebSocket 주문 피드백 시험
 
@@ -315,11 +315,11 @@ M6와 컵 투입 자세의 큰 차이를 한 번의 직선 보간으로 처리�
 
 ### 12.3 실제 로봇
 
-- 모든 접근점·작업점·이탈점을 10~20% 속도로 개별 확인
-- 컵·스쿱 DI와 실제 파지 상태 비교
+- 모든 접근점/작업점/이탈점을 10~20% 속도로 개별 확인
+- 컵/스쿱 DI와 실제 파지 상태 비교
 - 진입 baseline, delta, 검출 Z, 최대 힘 기록
-- 레인별 통 벽·컵·거치대 간섭 확인
-- 배출 성공률과 내용물 낙하·비산 확인
+- 레인별 통 벽/컵/거치대 간섭 확인
+- 배출 성공률과 내용물 낙하/비산 확인
 - Action Cancel, Pause, Resume, END와 E-Stop 시험
 - 제품 제공 후 홈 복귀와 J6 오차 확인
 
@@ -327,9 +327,9 @@ M6와 컵 투입 자세의 큰 차이를 한 번의 직선 보간으로 처리�
 ## 13. 유지보수 규칙
 
 - DB 컬럼을 바꾸면 `schema.sql`, migrations, Pydantic 모델, API 쿼리를 함께 수정한다.
-- Action·Service 필드를 바꾸면 `icecream_interfaces`와 모든 Client·Server를 다시 빌드한다.
+- Action/Service 필드를 바꾸면 `icecream_interfaces`와 모든 Client/Server를 다시 빌드한다.
 - 제조 단계명을 바꾸면 Action Feedback, `STEP_INFO`, DB CHECK 제약, 오류 모델을 함께 수정한다.
-- 좌표·속도·힘 임계값을 바꾸면 변경 이유, 장비 배치, 시험 속도, 결과를 기록한다.
+- 좌표/속도/힘 임계값을 바꾸면 변경 이유, 장비 배치, 시험 속도, 결과를 기록한다.
 - I/O 번호와 TCP를 바꾸면 코드뿐 아니라 컨트롤러 및 WebLogic 설정을 함께 확인한다.
 - UI 폴더나 파일명을 바꾸면 FastAPI의 `KIOSK_HTML` 경로도 수정한다.
 
