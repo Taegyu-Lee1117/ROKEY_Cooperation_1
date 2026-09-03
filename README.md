@@ -14,7 +14,7 @@ ROS 2와 두산 협동로봇을 활용한 아이스크림 제조 자동화 시�
 
 <div align="center">
 
-[▶ 아이스크림 제조 시연 영상 보기](협동1.mp4)
+http://www.youtube.com/watch?v=kTLdnDv2gPA
 
 </div>
 
