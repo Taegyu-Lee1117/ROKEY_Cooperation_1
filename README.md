@@ -14,7 +14,7 @@ ROS 2와 두산 협동로봇을 활용한 아이스크림 제조 자동화 시�
 
 <div align="center">
 
-[![Roskin Robbins 시연 영상](https://youtube.com)](http://youtube.com)
+[![Roskin Robbins 시연 영상](https://img.youtube.com/vi/kTLdnDv2gPA/hqdefault.jpg)](https://www.youtube.com/watch?v=kTLdnDv2gPA)
 
 
 </div>
